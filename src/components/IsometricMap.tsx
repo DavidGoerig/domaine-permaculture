@@ -68,11 +68,20 @@ interface Props {
   selectedItemId?: string | null;
   onSelect: (id: string | null) => void;
   onItemSelect?: (id: string, type: 'plant' | 'animal' | 'mushroom' | 'beehive') => void;
+  visibleTypes?: Set<ZoneType>;
+}
+
+/* ── BBox helper for auto-zoom ───────────────────────────────────────────── */
+function zoneScreenBBox(z: Zone, hz: number): { minX: number; minY: number; maxX: number; maxY: number } {
+  const pts4 = [iso(z.x, z.y), iso(z.x + z.width, z.y), iso(z.x + z.width, z.y + z.height), iso(z.x, z.y + z.height)];
+  const xs = pts4.map(p => p[0]);
+  const ys = pts4.map(p => p[1] - hz);
+  return { minX: Math.min(...xs), minY: Math.min(...ys), maxX: Math.max(...xs), maxY: Math.max(...ys) };
 }
 
 /* ── Component ───────────────────────────────────────────────────────────── */
 const IsometricMap: React.FC<Props> = ({
-  zones, plants = [], selectedZoneId, selectedItemId, onSelect, onItemSelect,
+  zones, plants = [], selectedZoneId, selectedItemId, onSelect, onItemSelect, visibleTypes,
 }) => {
   // Override champignons_haie to full visual extent (matches FarmMap custom band)
   const zonesEff = zones.map(z =>
@@ -83,6 +92,24 @@ const IsometricMap: React.FC<Props> = ({
   const sorted = [...zonesEff].sort(
     (a, b) => (a.x + a.width + a.y + a.height) - (b.x + b.width + b.y + b.height)
   );
+
+  // Filter by visible types
+  const visible = sorted.filter(z => !visibleTypes || visibleTypes.has(z.type));
+
+  // Auto-zoom: if exactly one zone visible, compute viewBox from its screen bbox
+  let viewBox = '0 0 830 420';
+  if (visible.length === 1) {
+    const z = visible[0];
+    const isHedge = z.id.startsWith('haie');
+    const hz = isHedge ? 0 : (HEIGHTS[z.type] ?? 10);
+    const bb = zoneScreenBBox(z, hz);
+    const pad = 30;
+    const vx = bb.minX - pad;
+    const vy = bb.minY - pad;
+    const vw = (bb.maxX - bb.minX) + pad * 2;
+    const vh = (bb.maxY - bb.minY) + pad * 2;
+    viewBox = `${vx.toFixed(1)} ${vy.toFixed(1)} ${vw.toFixed(1)} ${vh.toFixed(1)}`;
+  }
 
   /* ── Plant strips on top face ─────────────────────────────────────────── */
   function renderPlantStrips(zone: Zone, lift: number = 0) {
@@ -279,7 +306,7 @@ const IsometricMap: React.FC<Props> = ({
 
   /* ── SVG ─────────────────────────────────────────────────────────────── */
   return (
-    <svg viewBox="0 0 830 420" style={{ display: 'block', width: '100%', minWidth: '520px' }}
+    <svg viewBox={viewBox} style={{ display: 'block', width: '100%', minWidth: '520px' }}
       onClick={() => onSelect(null)}>
       <defs>
         {/* Sky gradient */}
@@ -393,7 +420,7 @@ const IsometricMap: React.FC<Props> = ({
         points={pts([iso(10,0), iso(714,0), iso(714,692), iso(10,692)])}
         fill="url(#isoGround)" opacity="0.28"/>
 
-      {sorted.map(zone => renderZone(zone))}
+      {visible.map(zone => renderZone(zone))}
 
       {/* Compass — isométrique (axes alignés sur la projection) */}
       {/* N: upper-right [+0.895, -0.447], E: lower-right [+0.895, +0.447] */}

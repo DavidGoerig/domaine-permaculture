@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import type { Zone, Flow, FlowFilters, Animal, BeeHive, MushroomBed, Plant } from './types/domain';
+import type { Zone, Flow, FlowFilters, Animal, BeeHive, MushroomBed, Plant, ZoneType } from './types/domain';
 import zonesData from './data/zones.json';
 import flowsData from './data/flows.json';
 import plantsData from './data/plants.json';
@@ -65,6 +65,28 @@ const MAP_VIEW_LABELS: { id: MapView; label: string }[] = [
   { id: 'isometrique',   label: '3D' },
 ];
 
+const ALL_ZONE_TYPES: ZoneType[] = [
+  'habitat', 'eau', 'maraîchage', 'verger', 'animaux', 'stockage', 'transformation', 'champignons', 'mellifères',
+];
+
+const ZONE_TYPE_LABELS: Record<ZoneType, string> = {
+  habitat: 'Habitat', eau: 'Eau', 'maraîchage': 'Maraîch.', verger: 'Verger',
+  animaux: 'Animaux', stockage: 'Stockage', transformation: 'Transfo.',
+  champignons: 'Champis', 'mellifères': 'Mellif.',
+};
+
+const ZONE_TYPE_COLORS: Record<ZoneType, string> = {
+  habitat:        '#d4c5a9',
+  eau:            '#8ecae6',
+  'maraîchage':   '#a8e6b0',
+  verger:         '#c8d8a0',
+  animaux:        '#f5e0b8',
+  stockage:       '#d0d0d0',
+  transformation: '#f5c98a',
+  champignons:    '#c8b8d8',
+  'mellifères':   '#fdf4c0',
+};
+
 const App: React.FC = () => {
   const [selectedZoneId, setSelectedZoneId] = useState<string | null>(null);
   const [currentWeek, setCurrentWeek] = useState(22);
@@ -74,6 +96,9 @@ const App: React.FC = () => {
   const [activeTab, setActiveTab] = useState<RightTab>('zone');
   const [mapView, setMapView] = useState<MapView>('zones');
   const [filterByZone, setFilterByZone] = useState(false);
+  const [visibleTypes, setVisibleTypes] = useState<Set<ZoneType>>(
+    new Set(['habitat', 'eau', 'maraîchage', 'verger', 'animaux', 'stockage', 'transformation', 'champignons', 'mellifères'])
+  );
 
   // Item selection (plant / animal / mushroom clicked on map)
   const [selectedItemId, setSelectedItemId] = useState<string | null>(null);
@@ -102,6 +127,13 @@ const App: React.FC = () => {
   const toggleFilter = (key: keyof FlowFilters) => {
     setFilters(f => ({ ...f, [key]: !f[key] }));
   };
+
+  const toggleZoneType = (t: ZoneType) =>
+    setVisibleTypes(s => {
+      const n = new Set(s);
+      n.has(t) ? n.delete(t) : n.add(t);
+      return n;
+    });
 
   const showFiche = selectedItemId !== null && selectedItemType !== null;
 
@@ -161,6 +193,35 @@ const App: React.FC = () => {
             </button>
           ))}
         </div>
+
+        {/* Toggle types de zones — uniquement vue isométrique */}
+        {mapView === 'isometrique' && (
+          <div style={{ display: 'flex', gap: '3px', flexWrap: 'wrap', flexShrink: 0 }}>
+            {ALL_ZONE_TYPES.map(t => {
+              const active = visibleTypes.has(t);
+              return (
+                <button
+                  key={t}
+                  onClick={() => toggleZoneType(t)}
+                  style={{
+                    fontSize: '9px',
+                    padding: '2px 6px',
+                    borderRadius: '10px',
+                    border: `1px solid ${active ? ZONE_TYPE_COLORS[t] : '#ccc'}`,
+                    background: active ? ZONE_TYPE_COLORS[t] : '#f5f5f5',
+                    color: active ? '#333' : '#aaa',
+                    cursor: 'pointer',
+                    fontWeight: active ? 600 : 400,
+                    transition: 'all 0.12s',
+                    lineHeight: 1.4,
+                  }}
+                >
+                  {ZONE_TYPE_LABELS[t]}
+                </button>
+              );
+            })}
+          </div>
+        )}
       </header>
 
       {/* Main */}
@@ -187,6 +248,7 @@ const App: React.FC = () => {
               selectedItemId={selectedItemId}
               onSelect={handleZoneSelect}
               onItemSelect={handleItemSelect}
+              visibleTypes={visibleTypes}
             />
           ) : (
             <FarmMap
