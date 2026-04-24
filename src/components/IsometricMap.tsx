@@ -282,10 +282,24 @@ const IsometricMap: React.FC<Props> = ({
     <svg viewBox="0 0 830 420" style={{ display: 'block', width: '100%', minWidth: '520px' }}
       onClick={() => onSelect(null)}>
       <defs>
+        {/* Sky gradient */}
         <linearGradient id="isoSky" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%"   stopColor="#ddeef8"/>
-          <stop offset="60%"  stopColor="#c8e0cc"/>
-          <stop offset="100%" stopColor="#b8d8b8"/>
+          <stop offset="0%"   stopColor="#2d7fc1"/>
+          <stop offset="35%"  stopColor="#6ab4df"/>
+          <stop offset="70%"  stopColor="#b8ddf0"/>
+          <stop offset="100%" stopColor="#d0ecd8"/>
+        </linearGradient>
+        {/* Sun glow — upper-left */}
+        <radialGradient id="sunGlow" cx="12%" cy="14%" r="28%" gradientUnits="objectBoundingBox">
+          <stop offset="0%"   stopColor="#fff8c0" stopOpacity="0.95"/>
+          <stop offset="25%"  stopColor="#ffe97a" stopOpacity="0.5"/>
+          <stop offset="60%"  stopColor="#ffd040" stopOpacity="0.12"/>
+          <stop offset="100%" stopColor="#87ceeb" stopOpacity="0"/>
+        </radialGradient>
+        {/* Ground plane gradient */}
+        <linearGradient id="isoGround" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%"   stopColor="#b8d890"/>
+          <stop offset="100%" stopColor="#90b860"/>
         </linearGradient>
 
         {/* Habitat — briques */}
@@ -349,12 +363,35 @@ const IsometricMap: React.FC<Props> = ({
         </pattern>
       </defs>
 
+      {/* Sky */}
       <rect width="830" height="420" fill="url(#isoSky)"/>
+      {/* Sun glow */}
+      <rect width="830" height="420" fill="url(#sunGlow)"/>
+      {/* Sun disc */}
+      <circle cx="102" cy="58" r="11" fill="#fff9a0" opacity="0.9"/>
+      <circle cx="102" cy="58" r="7"  fill="#fff5c0" opacity="0.98"/>
+
+      {/* Clouds */}
+      <g opacity="0.88">
+        <ellipse cx="195" cy="28" rx="34" ry="11" fill="white"/>
+        <ellipse cx="222" cy="22" rx="22" ry="10" fill="white"/>
+        <ellipse cx="170" cy="26" rx="20" ry="9"  fill="white"/>
+      </g>
+      <g opacity="0.72">
+        <ellipse cx="80"  cy="52" rx="22" ry="8"  fill="white"/>
+        <ellipse cx="100" cy="47" rx="16" ry="7"  fill="white"/>
+        <ellipse cx="62"  cy="50" rx="14" ry="6"  fill="white"/>
+      </g>
+      <g opacity="0.65">
+        <ellipse cx="710" cy="26" rx="28" ry="9"  fill="white"/>
+        <ellipse cx="735" cy="21" rx="18" ry="8"  fill="white"/>
+        <ellipse cx="688" cy="24" rx="16" ry="7"  fill="white"/>
+      </g>
 
       {/* Ground plane */}
       <polygon
         points={pts([iso(10,0), iso(714,0), iso(714,692), iso(10,692)])}
-        fill="#c8dca8" opacity="0.18"/>
+        fill="url(#isoGround)" opacity="0.28"/>
 
       {sorted.map(zone => renderZone(zone))}
 
