@@ -8,6 +8,7 @@ import mushroomsData from './data/mushrooms.json';
 import beehivesData from './data/beehives.json';
 import FarmMap from './components/FarmMap';
 import ProportionalMap from './components/ProportionalMap';
+import IsometricMap from './components/IsometricMap';
 import SidePanel from './components/SidePanel';
 import WeekCalendar from './components/WeekCalendar';
 import AnimalDashboard from './components/AnimalDashboard';
@@ -48,7 +49,7 @@ const FLOW_COLORS: Record<keyof FlowFilters, string> = {
 };
 
 type RightTab = 'zone' | 'agenda' | 'animaux' | 'champignons';
-type MapView = 'zones' | 'content' | 'proportionnel';
+type MapView = 'zones' | 'content' | 'proportionnel' | 'isometrique';
 
 const TAB_LABELS: { id: RightTab; label: string }[] = [
   { id: 'zone',        label: 'Zone' },
@@ -61,6 +62,7 @@ const MAP_VIEW_LABELS: { id: MapView; label: string }[] = [
   { id: 'zones',         label: 'Zones' },
   { id: 'content',       label: 'Contenu' },
   { id: 'proportionnel', label: '∝ m²' },
+  { id: 'isometrique',   label: '3D' },
 ];
 
 const App: React.FC = () => {
@@ -165,7 +167,7 @@ const App: React.FC = () => {
       <div style={{ display: 'flex', flex: 1, overflow: 'hidden' }}>
 
         {/* Carte */}
-        <div style={{ flex: 1, overflow: 'auto', background: '#f0ece4', padding: '4px' }}>
+        <div style={{ flex: 1, overflow: 'auto', background: mapView === 'isometrique' ? '#d8eaf0' : '#f0ece4', padding: '4px' }}>
           {mapView === 'proportionnel' ? (
             <ProportionalMap
               zones={zones}
@@ -176,6 +178,12 @@ const App: React.FC = () => {
               selectedItemId={selectedItemId}
               onSelect={handleZoneSelect}
               onItemSelect={handleItemSelect}
+            />
+          ) : mapView === 'isometrique' ? (
+            <IsometricMap
+              zones={zones}
+              selectedZoneId={selectedZoneId}
+              onSelect={handleZoneSelect}
             />
           ) : (
             <FarmMap
@@ -281,7 +289,7 @@ const App: React.FC = () => {
               </div>
 
               {/* Filtres flux (uniquement vue zones/contenu) */}
-              {mapView !== 'proportionnel' && (
+              {mapView !== 'proportionnel' && mapView !== 'isometrique' && (
                 <div style={{ padding: '8px 12px', borderTop: '1px solid #eee', background: '#fafafa', flexShrink: 0 }}>
                   <div style={{ fontSize: '10px', fontWeight: 600, color: '#999', marginBottom: '5px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
                     Afficher les flux
