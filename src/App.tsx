@@ -182,8 +182,11 @@ const App: React.FC = () => {
           ) : mapView === 'isometrique' ? (
             <IsometricMap
               zones={zones}
+              plants={plants}
               selectedZoneId={selectedZoneId}
+              selectedItemId={selectedItemId}
               onSelect={handleZoneSelect}
+              onItemSelect={handleItemSelect}
             />
           ) : (
             <FarmMap
