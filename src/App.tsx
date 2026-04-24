@@ -68,6 +68,7 @@ const MAP_VIEW_LABELS: { id: MapView; label: string }[] = [
 const App: React.FC = () => {
   const [selectedZoneId, setSelectedZoneId] = useState<string | null>(null);
   const [currentWeek, setCurrentWeek] = useState(22);
+  const [isoRotation, setIsoRotation] = useState<0 | 1 | 2 | 3>(0);
   const [filters, setFilters] = useState<FlowFilters>({
     water: true, fertility: true, cuisine: true, animals: true, transformation: true,
   });
@@ -187,6 +188,8 @@ const App: React.FC = () => {
               selectedItemId={selectedItemId}
               onSelect={handleZoneSelect}
               onItemSelect={handleItemSelect}
+              rotation={isoRotation}
+              onRotate={setIsoRotation}
             />
           ) : (
             <FarmMap
