@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import type { Zone, ZoneType, Plant, Flow } from '../types/domain';
 
 /* ── Projection ─────────────────────────────────────────────────────────── */
@@ -100,6 +100,7 @@ const IsometricMap: React.FC<Props> = ({
   }
 
   const rot = rotation ?? 0;
+  const [selectedFlowId, setSelectedFlowId] = useState<string | null>(null);
 
   // Override champignons_haie to full visual extent (matches FarmMap custom band)
   const zonesEff = zones.map(z =>
@@ -376,28 +377,33 @@ const IsometricMap: React.FC<Props> = ({
 
       const color = FLOW_COLORS[flow.type] ?? '#888';
       const markerId = `arrowIso-${flow.type}`;
+      const isSelected = flow.id === selectedFlowId;
 
       elems.push(
-        <line
-          key={flow.id}
-          x1={fx} y1={fy}
-          x2={tx} y2={ty}
-          stroke={color}
-          strokeWidth={1.2}
-          opacity={0.75}
-          strokeDasharray="4 2"
-          markerEnd={`url(#${markerId})`}
-        />
+        <g key={flow.id} style={{ cursor: 'pointer' }}
+          onClick={e => { e.stopPropagation(); setSelectedFlowId(isSelected ? null : flow.id); }}>
+          {/* Wide transparent hit area */}
+          <line x1={fx} y1={fy} x2={tx} y2={ty} stroke="transparent" strokeWidth={10}/>
+          {/* Visible line */}
+          <line
+            x1={fx} y1={fy} x2={tx} y2={ty}
+            stroke={color}
+            strokeWidth={isSelected ? 2.2 : 1.2}
+            opacity={isSelected ? 1 : 0.75}
+            strokeDasharray={isSelected ? undefined : "4 2"}
+            markerEnd={`url(#${markerId})`}
+          />
+        </g>
       );
     });
 
-    return <g pointerEvents="none">{elems}</g>;
+    return <g>{elems}</g>;
   }
 
   /* ── SVG ─────────────────────────────────────────────────────────────── */
   return (
     <svg viewBox={viewBox} style={{ display: 'block', width: '100%', minWidth: '520px' }}
-      onClick={() => onSelect(null)}>
+      onClick={() => { onSelect(null); setSelectedFlowId(null); }}>
       <defs>
         {/* Sky gradient */}
         <linearGradient id="isoSky" x1="0" y1="0" x2="0" y2="1">
@@ -562,6 +568,36 @@ const IsometricMap: React.FC<Props> = ({
           {compassLabels.SW}
         </text>
       </g>
+
+      {/* Selected flow info panel */}
+      {showFlows && selectedFlowId && (() => {
+        const flow = flows.find(f => f.id === selectedFlowId);
+        if (!flow?.name) return null;
+        const color = FLOW_COLORS[flow.type] ?? '#888';
+        const desc = flow.description ?? '';
+        const line1 = desc.slice(0, 44);
+        const line2 = desc.length > 44 ? desc.slice(44, 88) : '';
+        const line3 = desc.length > 88 ? desc.slice(88, 132) + (desc.length > 132 ? '…' : '') : '';
+        const PW = 262, PH = 88;
+        const px = 10, py = 300;
+        return (
+          <g pointerEvents="none">
+            <rect x={px} y={py} width={PW} height={PH} rx={4}
+              fill="#fff" stroke={color} strokeWidth={1.5} opacity={0.97}
+              filter="drop-shadow(0 2px 4px rgba(0,0,0,0.2))"/>
+            <rect x={px} y={py} width={PW} height={14} rx={4} fill={color} opacity={0.15}/>
+            <text x={px + 7} y={py + 10} fontSize="8.5" fontWeight="700" fill={color} fontFamily="system-ui">
+              {flow.name}
+            </text>
+            <text x={px + 7} y={py + 26} fontSize="7" fill="#555" fontFamily="system-ui">{line1}</text>
+            {line2 && <text x={px + 7} y={py + 36} fontSize="7" fill="#555" fontFamily="system-ui">{line2}</text>}
+            {line3 && <text x={px + 7} y={py + 46} fontSize="7" fill="#555" fontFamily="system-ui">{line3}</text>}
+            <text x={px + 7} y={py + 80} fontSize="6.5" fill="#aaa" fontFamily="system-ui">
+              Cliquer ailleurs pour fermer
+            </text>
+          </g>
+        );
+      })()}
 
       {/* Legend */}
       <rect x="8" y="398" width="814" height="18" rx="4" fill="#fff" opacity="0.82"/>
