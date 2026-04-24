@@ -90,6 +90,7 @@ const ZONE_TYPE_COLORS: Record<ZoneType, string> = {
 const App: React.FC = () => {
   const [selectedZoneId, setSelectedZoneId] = useState<string | null>(null);
   const [currentWeek, setCurrentWeek] = useState(22);
+  const [isoRotation, setIsoRotation] = useState<0 | 1 | 2 | 3>(0);
   const [filters, setFilters] = useState<FlowFilters>({
     water: true, fertility: true, cuisine: true, animals: true, transformation: true,
   });
@@ -249,6 +250,8 @@ const App: React.FC = () => {
               onSelect={handleZoneSelect}
               onItemSelect={handleItemSelect}
               visibleTypes={visibleTypes}
+              rotation={isoRotation}
+              onRotate={setIsoRotation}
             />
           ) : (
             <FarmMap

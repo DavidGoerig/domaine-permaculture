@@ -7,6 +7,9 @@ const OX = 415;
 const OY = 20;
 const ISO_ANGLE = Math.atan2(SC * 0.5, SC) * (180 / Math.PI); // ≈ 26.57° axe est-ouest iso
 
+const MAX_X = 714;
+const MAX_Y = 692;
+
 function iso(wx: number, wy: number): [number, number] {
   return [(wx - wy) * SC + OX, (wx + wy) * SC * 0.5 + OY];
 }
@@ -69,6 +72,8 @@ interface Props {
   onSelect: (id: string | null) => void;
   onItemSelect?: (id: string, type: 'plant' | 'animal' | 'mushroom' | 'beehive') => void;
   visibleTypes?: Set<ZoneType>;
+  rotation?: 0 | 1 | 2 | 3;
+  onRotate?: (r: 0 | 1 | 2 | 3) => void;
 }
 
 /* ── BBox helper for auto-zoom ───────────────────────────────────────────── */
@@ -81,8 +86,19 @@ function zoneScreenBBox(z: Zone, hz: number): { minX: number; minY: number; maxX
 
 /* ── Component ───────────────────────────────────────────────────────────── */
 const IsometricMap: React.FC<Props> = ({
-  zones, plants = [], selectedZoneId, selectedItemId, onSelect, onItemSelect, visibleTypes,
+  zones, plants = [], selectedZoneId, selectedItemId, onSelect, onItemSelect,
+  visibleTypes, rotation, onRotate,
 }) => {
+  // Rotated projection
+  function isoR(wx: number, wy: number): [number, number] {
+    switch (rotation ?? 0) {
+      case 1: return iso(MAX_Y - wy, wx);
+      case 2: return iso(MAX_X - wx, MAX_Y - wy);
+      case 3: return iso(wy, MAX_X - wx);
+      default: return iso(wx, wy);
+    }
+  }
+
   // Override champignons_haie to full visual extent (matches FarmMap custom band)
   const zonesEff = zones.map(z =>
     z.id === 'champignons_haie' ? { ...z, x: 626, y: 178, width: 88, height: 510 } : z
@@ -124,10 +140,10 @@ const IsometricMap: React.FC<Props> = ({
       ? []
       : plants.filter(p => p.zones.includes(id));
     const lp = ([sx, sy]: [number, number]): [number, number] => [sx, sy - lift];
-    const TL = lp(iso(x,     y    ));
-    const TR = lp(iso(x + w, y    ));
-    const BR = lp(iso(x + w, y + h));
-    const BL = lp(iso(x,     y + h));
+    const TL = lp(isoR(x,     y    ));
+    const TR = lp(isoR(x + w, y    ));
+    const BR = lp(isoR(x + w, y + h));
+    const BL = lp(isoR(x,     y + h));
 
     if (zonePlants.length === 0) {
       const patId = ZONE_PATTERN[type];
@@ -175,12 +191,12 @@ const IsometricMap: React.FC<Props> = ({
             stroke="none" pointerEvents="none"/>
         )}
         {strips.map(({ plant: p, y0, y1 }) => {
-          const sTL = lp(iso(x,     y0));
-          const sTR = lp(iso(x + w, y0));
-          const sBR = lp(iso(x + w, y1));
-          const sBL = lp(iso(x,     y1));
+          const sTL = lp(isoR(x,     y0));
+          const sTR = lp(isoR(x + w, y0));
+          const sBR = lp(isoR(x + w, y1));
+          const sBL = lp(isoR(x,     y1));
           const isSelItem = p.id === selectedItemId;
-          const [scx, scy_g] = iso(x + w / 2, (y0 + y1) / 2);
+          const [scx, scy_g] = isoR(x + w / 2, (y0 + y1) / 2);
           const scy = scy_g - lift;
           const stripH = (y1 - y0) * SC * 0.5;
           const isoW = TR[0] - TL[0];
@@ -226,7 +242,7 @@ const IsometricMap: React.FC<Props> = ({
       for (let c = 0; c < cols; c++) {
         const wx = x + (c + 0.5) * (w / cols);
         const wy = y + (r + 0.5) * (h / rows);
-        const [ix, iy] = iso(wx, wy);
+        const [ix, iy] = isoR(wx, wy);
         elems.push(
           <g key={`t${r}-${c}`} pointerEvents="none">
             <circle cx={ix} cy={iy - lift} r={radius}      fill="#3a8a2a" opacity="0.88"/>
@@ -248,17 +264,17 @@ const IsometricMap: React.FC<Props> = ({
     const sw         = isSelected ? 2 : 0.7;
     const strokeCol  = isSelected ? '#1a1a1a' : colors.stroke;
 
-    const TL = iso(x,     y);
-    const TR = iso(x + w, y);
-    const BR = iso(x + w, y + h);
-    const BL = iso(x,     y + h);
+    const TL = isoR(x,     y);
+    const TR = isoR(x + w, y);
+    const BR = isoR(x + w, y + h);
+    const BL = isoR(x,     y + h);
 
     // Top face lifted hz pixels above ground — ground stays fixed, roof goes up
     const TR_top: [number, number] = [TR[0], TR[1] - hz];
     const BR_top: [number, number] = [BR[0], BR[1] - hz];
     const BL_top: [number, number] = [BL[0], BL[1] - hz];
 
-    const [lcx, lcy_g] = iso(x + w / 2, y + h / 2);
+    const [lcx, lcy_g] = isoR(x + w / 2, y + h / 2);
     const lcy  = lcy_g - hz;  // label on top face
     const isoW = TR[0] - TL[0];
     const buildingTypes: ZoneType[] = ['habitat', 'transformation', 'stockage'];
@@ -303,6 +319,36 @@ const IsometricMap: React.FC<Props> = ({
       </g>
     );
   }
+
+  /* ── Compass labels by rotation ──────────────────────────────────────── */
+  // In iso view the viewer is at NE. "Devant" (bottom-center of screen) = SE direction.
+  // rotation 0 (NE view): devant=S, upper-right=N, lower-right=E, upper-left=O
+  // rotation 1 (SE view): devant=O, upper-right=E, lower-right=S, upper-left=N
+  // rotation 2 (SW view): devant=N, upper-right=S, lower-right=O, upper-left=E
+  // rotation 3 (NW view): devant=E, upper-right=O, lower-right=N, upper-left=S
+  const rot = rotation ?? 0;
+  const compassLabels = [
+    // [upperRight, lowerRight, lowerLeft, upperLeft] — matching the 4 arms of the compass rose
+    { NE: 'N', SE: 'E', SW: 'S', NW: 'O', front: 'S' }, // rot 0: NE view
+    { NE: 'E', SE: 'S', SW: 'O', NW: 'N', front: 'O' }, // rot 1: SE view
+    { NE: 'S', SE: 'O', SW: 'N', NW: 'E', front: 'N' }, // rot 2: SW view
+    { NE: 'O', SE: 'N', SW: 'E', NW: 'S', front: 'E' }, // rot 3: NW view
+  ][rot];
+
+  const handleCompassClick = (label: string) => {
+    if (!onRotate) return;
+    // Determine which rotation clicking this label leads to
+    // Each label shows a cardinal direction; clicking it rotates so that direction is "front"
+    const frontMap: Record<string, 0 | 1 | 2 | 3> = { S: 0, O: 1, N: 2, E: 3 };
+    const target = frontMap[label];
+    if (target !== undefined) onRotate(target);
+  };
+
+  const labelStyle = (label: string) => ({
+    cursor: onRotate ? 'pointer' : 'default',
+    fontWeight: label === compassLabels.front ? 700 : 400,
+    fill: label === compassLabels.front ? '#c44' : '#666',
+  });
 
   /* ── SVG ─────────────────────────────────────────────────────────────── */
   return (
@@ -417,22 +463,44 @@ const IsometricMap: React.FC<Props> = ({
 
       {/* Ground plane */}
       <polygon
-        points={pts([iso(10,0), iso(714,0), iso(714,692), iso(10,692)])}
+        points={pts([isoR(10,0), isoR(MAX_X,0), isoR(MAX_X,MAX_Y), isoR(10,MAX_Y)])}
         fill="url(#isoGround)" opacity="0.28"/>
 
       {visible.map(zone => renderZone(zone))}
 
       {/* Compass — isométrique (axes alignés sur la projection) */}
-      {/* N: upper-right [+0.895, -0.447], E: lower-right [+0.895, +0.447] */}
-      <g transform="translate(798,38)" fontFamily="system-ui">
+      {/* Upper-right arm = NE direction in screen space */}
+      <g transform="translate(798,38)" fontFamily="system-ui" onClick={e => e.stopPropagation()}>
         <circle cx="0" cy="0" r="15" fill="#fff" opacity="0.82"/>
         <line x1="-9" y1="4.5"  x2="9" y2="-4.5" stroke="#bbb" strokeWidth="0.8"/>
         <line x1="-9" y1="-4.5" x2="9" y2="4.5"  stroke="#bbb" strokeWidth="0.8"/>
-        <polygon points="9,-4.5 5,-1.5 6.5,-4" fill="#c44"/>
-        <text x="11"  y="-4"  textAnchor="start" fontSize="6" fill="#c44" fontWeight="700">N</text>
-        <text x="11"  y="7"   textAnchor="start" fontSize="6" fill="#666">E</text>
-        <text x="-11" y="-4"  textAnchor="end"   fontSize="6" fill="#666">O</text>
-        <text x="-11" y="7"   textAnchor="end"   fontSize="6" fill="#666">S</text>
+        {/* Arrow tip toward upper-right (NE arm) */}
+        <polygon points="9,-4.5 5,-1.5 6.5,-4"
+          fill={compassLabels.NE === compassLabels.front ? '#c44' : '#aaa'}/>
+        {/* NE arm label */}
+        <text x="11" y="-4" textAnchor="start" fontSize="6"
+          style={labelStyle(compassLabels.NE)}
+          onClick={() => handleCompassClick(compassLabels.NE)}>
+          {compassLabels.NE}
+        </text>
+        {/* SE arm label */}
+        <text x="11" y="7" textAnchor="start" fontSize="6"
+          style={labelStyle(compassLabels.SE)}
+          onClick={() => handleCompassClick(compassLabels.SE)}>
+          {compassLabels.SE}
+        </text>
+        {/* NW arm label */}
+        <text x="-11" y="-4" textAnchor="end" fontSize="6"
+          style={labelStyle(compassLabels.NW)}
+          onClick={() => handleCompassClick(compassLabels.NW)}>
+          {compassLabels.NW}
+        </text>
+        {/* SW arm label */}
+        <text x="-11" y="7" textAnchor="end" fontSize="6"
+          style={labelStyle(compassLabels.SW)}
+          onClick={() => handleCompassClick(compassLabels.SW)}>
+          {compassLabels.SW}
+        </text>
       </g>
 
       {/* Legend */}
