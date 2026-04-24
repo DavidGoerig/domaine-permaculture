@@ -631,6 +631,9 @@ const FarmMap: React.FC<Props> = ({
       onClick={e => { if ((e.target as SVGElement).tagName === 'svg') { onSelect(null); setSelectedFlowId(null); } }}
     >
       <defs>
+        <clipPath id="zoneArea">
+          <rect x="0" y="0" width="760" height="702"/>
+        </clipPath>
         {flowsByType.map(([type]) => (
           <marker
             key={type}
@@ -658,6 +661,7 @@ const FarmMap: React.FC<Props> = ({
           href="/2da76a10-193c-4aa7-b6cf-c76e9cb96b9a.png"
           x="0" y="0" width="760" height="860"
           preserveAspectRatio="none"
+          clipPath="url(#zoneArea)"
         />
       )}
 
