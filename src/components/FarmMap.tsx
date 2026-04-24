@@ -659,7 +659,7 @@ const FarmMap: React.FC<Props> = ({
       {viewMode === 'zones' && (
         <image
           href="/2da76a10-193c-4aa7-b6cf-c76e9cb96b9a.png"
-          x="0" y="0" width="760" height="860"
+          x="0" y="-20" width="760" height="860"
           preserveAspectRatio="none"
           clipPath="url(#zoneArea)"
         />
