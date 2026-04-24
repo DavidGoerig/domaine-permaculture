@@ -655,7 +655,7 @@ const FarmMap: React.FC<Props> = ({
       {/* Realistic background photo — zones view only */}
       {viewMode === 'zones' && (
         <image
-          href="/zones-background.jpg"
+          href="/2da76a10-193c-4aa7-b6cf-c76e9cb96b9a.png"
           x="0" y="0" width="760" height="860"
           preserveAspectRatio="none"
         />
