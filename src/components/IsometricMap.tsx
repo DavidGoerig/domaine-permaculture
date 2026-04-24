@@ -1,5 +1,5 @@
 import React from 'react';
-import type { Zone, ZoneType, Plant } from '../types/domain';
+import type { Zone, ZoneType, Plant, Flow } from '../types/domain';
 
 /* ── Projection ─────────────────────────────────────────────────────────── */
 const SC = 0.46;
@@ -36,6 +36,11 @@ const ZONE_COLORS: Record<ZoneType, { fill: string; stroke: string }> = {
   'mellifères':   { fill: '#fdf4c0', stroke: '#c8a820' },
 };
 
+const FLOW_COLORS: Record<string, string> = {
+  water: '#3B8BD4', fertility: '#639922', cuisine: '#E8593C',
+  animals: '#EF9F27', transformation: '#7a5a9a',
+};
+
 const CATEGORY_COLORS: Record<string, string> = {
   'légume-feuille': '#3aaa5a', 'légume-racine': '#cc8f3a',
   'légume-fruit':   '#E8593C', 'légumineuse':   '#639922',
@@ -67,6 +72,8 @@ const ZONE_PATTERN: Partial<Record<ZoneType, string>> = {
 interface Props {
   zones: Zone[];
   plants?: Plant[];
+  flows?: Flow[];
+  showFlows?: boolean;
   selectedZoneId: string | null;
   selectedItemId?: string | null;
   onSelect: (id: string | null) => void;
@@ -86,7 +93,7 @@ function zoneScreenBBox(z: Zone, hz: number): { minX: number; minY: number; maxX
 
 /* ── Component ───────────────────────────────────────────────────────────── */
 const IsometricMap: React.FC<Props> = ({
-  zones, plants = [], selectedZoneId, selectedItemId, onSelect, onItemSelect,
+  zones, plants = [], flows = [], showFlows = false, selectedZoneId, selectedItemId, onSelect, onItemSelect,
   visibleTypes, rotation, onRotate,
 }) => {
   // Rotated projection
@@ -321,24 +328,16 @@ const IsometricMap: React.FC<Props> = ({
   }
 
   /* ── Compass labels by rotation ──────────────────────────────────────── */
-  // In iso view the viewer is at NE. "Devant" (bottom-center of screen) = SE direction.
-  // rotation 0 (NE view): devant=S, upper-right=N, lower-right=E, upper-left=O
-  // rotation 1 (SE view): devant=O, upper-right=E, lower-right=S, upper-left=N
-  // rotation 2 (SW view): devant=N, upper-right=S, lower-right=O, upper-left=E
-  // rotation 3 (NW view): devant=E, upper-right=O, lower-right=N, upper-left=S
   const rot = rotation ?? 0;
   const compassLabels = [
-    // [upperRight, lowerRight, lowerLeft, upperLeft] — matching the 4 arms of the compass rose
-    { NE: 'N', SE: 'E', SW: 'S', NW: 'O', front: 'S' }, // rot 0: NE view
-    { NE: 'E', SE: 'S', SW: 'O', NW: 'N', front: 'O' }, // rot 1: SE view
-    { NE: 'S', SE: 'O', SW: 'N', NW: 'E', front: 'N' }, // rot 2: SW view
-    { NE: 'O', SE: 'N', SW: 'E', NW: 'S', front: 'E' }, // rot 3: NW view
+    { NE: 'N', SE: 'E', SW: 'S', NW: 'O', front: 'S' },
+    { NE: 'E', SE: 'S', SW: 'O', NW: 'N', front: 'O' },
+    { NE: 'S', SE: 'O', SW: 'N', NW: 'E', front: 'N' },
+    { NE: 'O', SE: 'N', SW: 'E', NW: 'S', front: 'E' },
   ][rot];
 
   const handleCompassClick = (label: string) => {
     if (!onRotate) return;
-    // Determine which rotation clicking this label leads to
-    // Each label shows a cardinal direction; clicking it rotates so that direction is "front"
     const frontMap: Record<string, 0 | 1 | 2 | 3> = { S: 0, O: 1, N: 2, E: 3 };
     const target = frontMap[label];
     if (target !== undefined) onRotate(target);
@@ -349,6 +348,47 @@ const IsometricMap: React.FC<Props> = ({
     fontWeight: label === compassLabels.front ? 700 : 400,
     fill: label === compassLabels.front ? '#c44' : '#666',
   });
+
+  /* ── Flows render ───────────────────────────────────────────────────── */
+  function renderFlows() {
+    const zoneMap = new Map(zonesEff.map(z => [z.id, z]));
+    const elems: React.ReactNode[] = [];
+
+    flows.forEach(flow => {
+      if (!flow.fromZoneId || !flow.toZoneId) return;
+      const from = zoneMap.get(flow.fromZoneId);
+      const to   = zoneMap.get(flow.toZoneId);
+      if (!from || !to) return;
+
+      const isHedgeFrom = from.id.startsWith('haie');
+      const isHedgeTo   = to.id.startsWith('haie');
+      const hzFrom = isHedgeFrom ? 0 : (HEIGHTS[from.type] ?? 10);
+      const hzTo   = isHedgeTo   ? 0 : (HEIGHTS[to.type]   ?? 10);
+
+      const [fx, fy_g] = isoR(from.x + from.width / 2, from.y + from.height / 2);
+      const fy = fy_g - hzFrom;
+      const [tx, ty_g] = isoR(to.x + to.width / 2, to.y + to.height / 2);
+      const ty = ty_g - hzTo;
+
+      const color = FLOW_COLORS[flow.type] ?? '#888';
+      const markerId = `arrowIso-${flow.type}`;
+
+      elems.push(
+        <line
+          key={flow.id}
+          x1={fx} y1={fy}
+          x2={tx} y2={ty}
+          stroke={color}
+          strokeWidth={1.2}
+          opacity={0.75}
+          strokeDasharray="4 2"
+          markerEnd={`url(#${markerId})`}
+        />
+      );
+    });
+
+    return <g pointerEvents="none">{elems}</g>;
+  }
 
   /* ── SVG ─────────────────────────────────────────────────────────────── */
   return (
@@ -374,6 +414,19 @@ const IsometricMap: React.FC<Props> = ({
           <stop offset="0%"   stopColor="#b8d890"/>
           <stop offset="100%" stopColor="#90b860"/>
         </linearGradient>
+
+        {/* Flow arrow markers — one per flow type */}
+        {(Object.entries(FLOW_COLORS) as [string, string][]).map(([type, color]) => (
+          <marker
+            key={type}
+            id={`arrowIso-${type}`}
+            markerWidth="6" markerHeight="6"
+            refX="5" refY="3"
+            orient="auto"
+          >
+            <path d="M0,0 L0,6 L6,3 z" fill={color} opacity={0.85}/>
+          </marker>
+        ))}
 
         {/* Habitat — briques */}
         <pattern id="ptHabitat" x="0" y="0" width="9" height="5" patternUnits="userSpaceOnUse">
@@ -467,6 +520,9 @@ const IsometricMap: React.FC<Props> = ({
         fill="url(#isoGround)" opacity="0.28"/>
 
       {visible.map(zone => renderZone(zone))}
+
+      {/* Flows — rendered above zones */}
+      {showFlows && renderFlows()}
 
       {/* Compass — isométrique (axes alignés sur la projection) */}
       {/* Upper-right arm = NE direction in screen space */}
