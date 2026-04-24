@@ -202,7 +202,7 @@ const IsometricMap: React.FC<Props> = ({
           const [scx, scy_g] = isoR(x + w / 2, (y0 + y1) / 2);
           const scy = scy_g - lift;
           const stripH = (y1 - y0) * SC * 0.5;
-          const isoW = TR[0] - TL[0];
+          const isoW = Math.abs(TR[0] - TL[0]);
           return (
             <g key={p.id}
               onClick={e => { e.stopPropagation(); onItemSelect?.(p.id, 'plant'); }}
@@ -282,7 +282,7 @@ const IsometricMap: React.FC<Props> = ({
     type Wall = [number,number][];
     let wall1: Wall, wall2: Wall;
     switch (rot) {
-      case 1: wall1 = [TL,BL,BL_top,TL_top]; wall2 = [TL,TR,TR_top,TL_top]; break;
+      case 1: wall1 = [TR,BR,BR_top,TR_top]; wall2 = [TL,TR,TR_top,TL_top]; break;
       case 2: wall1 = [TL,TR,TR_top,TL_top]; wall2 = [TL,BL,BL_top,TL_top]; break;
       case 3: wall1 = [BL,BR,BR_top,BL_top]; wall2 = [TL,BL,BL_top,TL_top]; break;
       default: wall1 = [BL,BR,BR_top,BL_top]; wall2 = [BR,TR,TR_top,BR_top];
