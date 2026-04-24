@@ -5,6 +5,7 @@ import type { Zone, ZoneType, Plant } from '../types/domain';
 const SC = 0.46;
 const OX = 415;
 const OY = 20;
+const ISO_ANGLE = Math.atan2(SC * 0.5, SC) * (180 / Math.PI); // ≈ 26.57° axe est-ouest iso
 
 function iso(wx: number, wy: number): [number, number] {
   return [(wx - wy) * SC + OX, (wx + wy) * SC * 0.5 + OY];
@@ -72,22 +73,26 @@ const IsometricMap: React.FC<Props> = ({
 
   // Painter's algorithm: south-edge (y+h) ascending, then west-to-east (x) for ties
   const sorted = [...zonesEff].sort(
-    (a, b) => (a.y + a.height) - (b.y + b.height) || a.x - b.x
+    (a, b) => (a.x + a.width + a.y + a.height) - (b.x + b.width + b.y + b.height)
   );
 
   /* ── Plant strips on top face ─────────────────────────────────────────── */
-  function renderPlantStrips(zone: Zone) {
+  function renderPlantStrips(zone: Zone, lift: number = 0) {
     const { x, y, width: w, height: h, id, type } = zone;
     const colors = ZONE_COLORS[type] ?? { fill: '#ddd', stroke: '#999' };
     const isSelected = id === selectedZoneId;
     const strokeCol  = isSelected ? '#1a1a1a' : colors.stroke;
     const sw         = isSelected ? 2 : 0.7;
 
-    const zonePlants = plants.filter(p => p.zones.includes(id));
-    const TL = iso(x,     y);
-    const TR = iso(x + w, y);
-    const BR = iso(x + w, y + h);
-    const BL = iso(x,     y + h);
+    const buildingTypes: ZoneType[] = ['habitat', 'transformation', 'stockage'];
+    const zonePlants = buildingTypes.includes(type)
+      ? []
+      : plants.filter(p => p.zones.includes(id));
+    const lp = ([sx, sy]: [number, number]): [number, number] => [sx, sy - lift];
+    const TL = lp(iso(x,     y    ));
+    const TR = lp(iso(x + w, y    ));
+    const BR = lp(iso(x + w, y + h));
+    const BL = lp(iso(x,     y + h));
 
     if (zonePlants.length === 0) {
       return (
@@ -101,12 +106,18 @@ const IsometricMap: React.FC<Props> = ({
 
     const totalYield = Math.max(1, zonePlants.reduce((s, p) => s + p.yieldKgPerM2, 0));
 
-    // Pre-compute strips
+    // Raw sizes with per-plant minimum, then normalize so total = exactly h
+    const minPerStrip = h / zonePlants.length;
+    const rawSizes = zonePlants.map(p =>
+      Math.max(minPerStrip, (p.yieldKgPerM2 / totalYield) * h)
+    );
+    const totalRaw = rawSizes.reduce((s, v) => s + v, 0);
+
     const strips: { plant: Plant; y0: number; y1: number }[] = [];
     let yOff = y;
-    for (const p of zonePlants) {
-      const sh = Math.max(2, (p.yieldKgPerM2 / totalYield) * h);
-      strips.push({ plant: p, y0: yOff, y1: yOff + sh });
+    for (let i = 0; i < zonePlants.length; i++) {
+      const sh = (rawSizes[i] / totalRaw) * h;
+      strips.push({ plant: zonePlants[i], y0: yOff, y1: yOff + sh });
       yOff += sh;
     }
 
@@ -117,11 +128,15 @@ const IsometricMap: React.FC<Props> = ({
           fill={isSelected ? lighten(colors.fill, 0.22) : colors.fill}
           stroke="none"/>
         {strips.map(({ plant: p, y0, y1 }) => {
-          const sTL = iso(x,     y0);
-          const sTR = iso(x + w, y0);
-          const sBR = iso(x + w, y1);
-          const sBL = iso(x,     y1);
+          const sTL = lp(iso(x,     y0));
+          const sTR = lp(iso(x + w, y0));
+          const sBR = lp(iso(x + w, y1));
+          const sBL = lp(iso(x,     y1));
           const isSelItem = p.id === selectedItemId;
+          const [scx, scy_g] = iso(x + w / 2, (y0 + y1) / 2);
+          const scy = scy_g - lift;
+          const stripH = (y1 - y0) * SC * 0.5;
+          const isoW = TR[0] - TL[0];
           return (
             <g key={p.id}
               onClick={e => { e.stopPropagation(); onItemSelect?.(p.id, 'plant'); }}
@@ -129,10 +144,19 @@ const IsometricMap: React.FC<Props> = ({
               <polygon
                 points={pts([sTL, sTR, sBR, sBL])}
                 fill={CATEGORY_COLORS[p.category] ?? '#888'}
-                opacity={isSelItem ? 1 : 0.82}
-                stroke={isSelItem ? '#fff' : 'none'}
-                strokeWidth={isSelItem ? 1 : 0}
+                opacity={isSelItem ? 1 : 0.85}
+                stroke="rgba(255,255,255,0.7)"
+                strokeWidth={isSelItem ? 1.2 : 0.6}
               />
+              {isoW >= 20 && (
+                <text x={scx} y={scy} textAnchor="middle" dominantBaseline="middle"
+                  fontSize={stripH >= 7 ? 5.5 : stripH >= 5 ? 4.5 : 3.8}
+                  fontFamily="system-ui" fill="#fff" fontWeight="600"
+                  transform={`rotate(${(type === 'champignons' ? -ISO_ANGLE : ISO_ANGLE).toFixed(2)}, ${scx.toFixed(1)}, ${scy.toFixed(1)})`}
+                  pointerEvents="none" style={{ userSelect: 'none' }}>
+                  {p.name}
+                </text>
+              )}
               <title>{p.name} — {p.yieldKgPerM2} kg/m²</title>
             </g>
           );
@@ -145,7 +169,7 @@ const IsometricMap: React.FC<Props> = ({
   }
 
   /* ── Tree decorations ────────────────────────────────────────────────── */
-  function renderTrees(zone: Zone) {
+  function renderTrees(zone: Zone, lift: number = 0) {
     const { x, y, width: w, height: h, id } = zone;
     const cols   = Math.max(2, Math.floor(w / 48));
     const rows   = Math.max(2, Math.floor(h / 48));
@@ -158,8 +182,8 @@ const IsometricMap: React.FC<Props> = ({
         const [ix, iy] = iso(wx, wy);
         elems.push(
           <g key={`t${r}-${c}`} pointerEvents="none">
-            <circle cx={ix} cy={iy} r={radius}      fill="#3a8a2a" opacity="0.88"/>
-            <circle cx={ix} cy={iy} r={radius * 0.5} fill="#2a6a1a" opacity="0.55"/>
+            <circle cx={ix} cy={iy - lift} r={radius}      fill="#3a8a2a" opacity="0.88"/>
+            <circle cx={ix} cy={iy - lift} r={radius * 0.5} fill="#2a6a1a" opacity="0.55"/>
           </g>
         );
       }
@@ -182,43 +206,48 @@ const IsometricMap: React.FC<Props> = ({
     const BR = iso(x + w, y + h);
     const BL = iso(x,     y + h);
 
-    const BRd: [number, number] = [BR[0], BR[1] + hz];
-    const BLd: [number, number] = [BL[0], BL[1] + hz];
-    const TRd: [number, number] = [TR[0], TR[1] + hz];
+    // Top face lifted hz pixels above ground — ground stays fixed, roof goes up
+    const TR_top: [number, number] = [TR[0], TR[1] - hz];
+    const BR_top: [number, number] = [BR[0], BR[1] - hz];
+    const BL_top: [number, number] = [BL[0], BL[1] - hz];
 
-    const [lcx, lcy] = iso(x + w / 2, y + h / 2);
-    const isoW       = TR[0] - TL[0];
-    const hasPlants  = plants.some(p => p.zones.includes(id));
+    const [lcx, lcy_g] = iso(x + w / 2, y + h / 2);
+    const lcy  = lcy_g - hz;  // label on top face
+    const isoW = TR[0] - TL[0];
+    const buildingTypes: ZoneType[] = ['habitat', 'transformation', 'stockage'];
+    const hasPlants  = !buildingTypes.includes(type) && plants.some(p => p.zones.includes(id));
     const isTree     = (id === 'verger' || id === 'noyers') && !hasPlants;
 
     return (
-      <g key={id} onClick={e => { e.stopPropagation(); onSelect(id); }} style={{ cursor: 'pointer' }}>
-        {/* South wall */}
+      <g key={id} onClick={e => { e.stopPropagation(); onSelect(id); }} style={{ cursor: 'pointer' }} opacity={isHedge ? 0.55 : 1}>
+        {/* South wall — ground south edge → top south edge */}
         {hz > 0 && (
-          <polygon points={pts([BL, BR, BRd, BLd])}
+          <polygon points={pts([BL, BR, BR_top, BL_top])}
             fill={darken(colors.fill, 0.68)} stroke={strokeCol} strokeWidth={sw} strokeLinejoin="round"/>
         )}
-        {/* East wall */}
+        {/* East wall — ground east edge → top east edge */}
         {hz > 0 && (
-          <polygon points={pts([BR, TR, TRd, BRd])}
+          <polygon points={pts([BR, TR, TR_top, BR_top])}
             fill={darken(colors.fill, 0.52)} stroke={strokeCol} strokeWidth={sw} strokeLinejoin="round"/>
         )}
         {/* Top face (with plant strips if applicable) */}
-        {renderPlantStrips(zone)}
+        {renderPlantStrips(zone, hz)}
         {/* Tree decorations */}
-        {isTree && renderTrees(zone)}
-        {/* Label */}
-        {isoW >= 22 && (
+        {isTree && renderTrees(zone, hz)}
+        {/* Label — only on zones without plant strips */}
+        {isoW >= 14 && !hasPlants && (
           <text x={lcx} y={lcy} textAnchor="middle" dominantBaseline="middle"
-            fontSize={isoW > 80 ? 8 : isoW > 48 ? 7 : 6}
+            fontSize={isoW > 80 ? 7.5 : isoW > 50 ? 6.5 : isoW > 30 ? 5.5 : 5}
             fontFamily="system-ui" fill="#222" fontWeight={isSelected ? '700' : '500'}
+            transform={`rotate(${(type === 'champignons' ? -ISO_ANGLE : ISO_ANGLE).toFixed(2)}, ${lcx.toFixed(1)}, ${lcy.toFixed(1)})`}
             pointerEvents="none" style={{ userSelect: 'none' }}>
-            {name.slice(0, Math.max(3, Math.floor(isoW / 5.2)))}
+            {name}
           </text>
         )}
-        {zone.surfaceM2 && isoW >= 90 && (
-          <text x={lcx} y={lcy + 9} textAnchor="middle" dominantBaseline="middle"
-            fontSize="6" fontFamily="system-ui" fill="#555"
+        {zone.surfaceM2 && isoW >= 90 && !hasPlants && (
+          <text x={lcx} y={lcy + 8} textAnchor="middle" dominantBaseline="middle"
+            fontSize="5.5" fontFamily="system-ui" fill="#555"
+            transform={`rotate(${ISO_ANGLE.toFixed(2)}, ${lcx.toFixed(1)}, ${(lcy + 8).toFixed(1)})`}
             pointerEvents="none" style={{ userSelect: 'none' }}>
             {zone.surfaceM2.toLocaleString('fr')} m²
           </text>
@@ -249,13 +278,17 @@ const IsometricMap: React.FC<Props> = ({
 
       {sorted.map(zone => renderZone(zone))}
 
-      {/* Compass */}
-      <g transform="translate(800,36)" fontFamily="system-ui">
-        <circle cx="0" cy="0" r="13" fill="#fff" opacity="0.75"/>
-        <line x1="0" y1="-9" x2="0" y2="9"  stroke="#888" strokeWidth="0.8"/>
-        <line x1="-9" y1="0" x2="9" y2="0"  stroke="#888" strokeWidth="0.8"/>
-        <text x="0"  y="-11" textAnchor="middle" fontSize="6.5" fill="#555">N</text>
-        <text x="11" y="2.5" textAnchor="start"  fontSize="6.5" fill="#555">E</text>
+      {/* Compass — isométrique (axes alignés sur la projection) */}
+      {/* N: upper-right [+0.895, -0.447], E: lower-right [+0.895, +0.447] */}
+      <g transform="translate(798,38)" fontFamily="system-ui">
+        <circle cx="0" cy="0" r="15" fill="#fff" opacity="0.82"/>
+        <line x1="-9" y1="4.5"  x2="9" y2="-4.5" stroke="#bbb" strokeWidth="0.8"/>
+        <line x1="-9" y1="-4.5" x2="9" y2="4.5"  stroke="#bbb" strokeWidth="0.8"/>
+        <polygon points="9,-4.5 5,-1.5 6.5,-4" fill="#c44"/>
+        <text x="11"  y="-4"  textAnchor="start" fontSize="6" fill="#c44" fontWeight="700">N</text>
+        <text x="11"  y="7"   textAnchor="start" fontSize="6" fill="#666">E</text>
+        <text x="-11" y="-4"  textAnchor="end"   fontSize="6" fill="#666">O</text>
+        <text x="-11" y="7"   textAnchor="end"   fontSize="6" fill="#666">S</text>
       </g>
 
       {/* Legend */}
