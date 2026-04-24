@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import type { Zone, Flow, FlowFilters, ZoneType, Plant, Animal, MushroomBed, BeeHive } from '../types/domain';
 
 const COLORS: Record<ZoneType, { fill: string; stroke: string }> = {
@@ -102,11 +102,19 @@ const SECTION_LABELS = [
   { y: 502, text: 'ZONE 3 — Extensif · vaches · noyers · biodiversité' },
 ];
 
+function getPathMidpoint(path: string): { x: number; y: number } {
+  const nums = (path.match(/-?\d+\.?\d*/g) ?? []).map(Number);
+  if (nums.length < 4) return { x: nums[0] ?? 0, y: nums[1] ?? 0 };
+  return { x: (nums[0] + nums[2]) / 2, y: (nums[1] + nums[3]) / 2 };
+}
+
 const FarmMap: React.FC<Props> = ({
   zones, flows, selectedZoneId, selectedItemId, filters, onSelect, onItemSelect,
   viewMode = 'zones', plants = [], animals = [], mushroomBeds = [], beehives = [],
 }) => {
   const zoneById = new Map(zones.map(z => [z.id, z]));
+  const [hoveredFlowId, setHoveredFlowId] = useState<string | null>(null);
+  const [selectedFlowId, setSelectedFlowId] = useState<string | null>(null);
 
   const isFlowVisible = (flow: Flow): boolean => {
     if (flow.type === 'water') return filters.water;
@@ -616,7 +624,7 @@ const FarmMap: React.FC<Props> = ({
     <svg
       viewBox="0 0 760 860"
       style={{ display: 'block', width: '100%', minWidth: '520px' }}
-      onClick={e => { if ((e.target as SVGElement).tagName === 'svg') onSelect(null); }}
+      onClick={e => { if ((e.target as SVGElement).tagName === 'svg') { onSelect(null); setSelectedFlowId(null); } }}
     >
       <defs>
         {flowsByType.map(([type]) => (
@@ -720,20 +728,72 @@ const FarmMap: React.FC<Props> = ({
       {/* Flux */}
       {flows.map(flow => {
         const visible = isFlowVisible(flow);
+        const isHovered = flow.id === hoveredFlowId;
+        const isSelected = flow.id === selectedFlowId;
+        const color = FLOW_COLORS[flow.type];
         return (
-          <path
-            key={flow.id}
-            d={flow.path}
-            fill="none"
-            stroke={FLOW_COLORS[flow.type]}
-            strokeWidth="1.5"
-            strokeDasharray="5,3"
-            opacity={visible ? 0.8 : 0}
-            style={{ transition: 'opacity 0.3s', pointerEvents: 'none' }}
-            markerEnd={`url(#arrow-${flow.type})`}
-          />
+          <g key={flow.id}>
+            <path
+              d={flow.path}
+              fill="none"
+              stroke={color}
+              strokeWidth={isSelected ? 3 : isHovered ? 2.5 : 1.5}
+              strokeDasharray={isSelected ? 'none' : '5,3'}
+              opacity={visible ? (isSelected || isHovered ? 1 : 0.8) : 0}
+              style={{ transition: 'stroke-width 0.15s, opacity 0.3s', pointerEvents: 'none' }}
+              markerEnd={`url(#arrow-${flow.type})`}
+            />
+            {visible && (
+              <path
+                d={flow.path}
+                fill="none"
+                stroke="transparent"
+                strokeWidth={14}
+                style={{ cursor: 'pointer' }}
+                onMouseEnter={() => setHoveredFlowId(flow.id)}
+                onMouseLeave={() => setHoveredFlowId(null)}
+                onClick={e => {
+                  e.stopPropagation();
+                  const next = flow.id === selectedFlowId ? null : flow.id;
+                  setSelectedFlowId(next);
+                  if (next && flow.fromZoneId) onSelect(flow.fromZoneId);
+                  else if (!next) onSelect(null);
+                }}
+              />
+            )}
+          </g>
         );
       })}
+
+      {/* Tooltip flux sélectionné */}
+      {selectedFlowId && (() => {
+        const flow = flows.find(f => f.id === selectedFlowId);
+        if (!flow?.name) return null;
+        const mid = getPathMidpoint(flow.path);
+        const TW = 230;
+        const TH = 52;
+        const tx = Math.min(Math.max(mid.x - TW / 2, 4), 760 - TW - 4);
+        const ty = mid.y < 50 ? mid.y + 12 : mid.y - TH - 10;
+        const color = FLOW_COLORS[flow.type];
+        const desc = flow.description ?? '';
+        const line1 = desc.slice(0, 40);
+        const line2 = desc.length > 40 ? desc.slice(40, 80) + (desc.length > 80 ? '…' : '') : '';
+        return (
+          <g pointerEvents="none">
+            <rect x={tx} y={ty} width={TW} height={TH} rx={4}
+              fill="#fff" stroke={color} strokeWidth={1.5} opacity={0.97}/>
+            <rect x={tx} y={ty} width={TW} height={13} rx={4} fill={color} opacity={0.15}/>
+            <text x={tx + 7} y={ty + 9.5} fontSize="8.5" fontWeight="700" fill={color} fontFamily="system-ui">
+              {flow.name}
+            </text>
+            <text x={tx + 7} y={ty + 22} fontSize="7" fill="#555" fontFamily="system-ui">{line1}</text>
+            {line2 && <text x={tx + 7} y={ty + 32} fontSize="7" fill="#555" fontFamily="system-ui">{line2}</text>}
+            <text x={tx + 7} y={ty + 46} fontSize="6.5" fill="#aaa" fontFamily="system-ui">
+              Cliquer ailleurs pour fermer · Zone source sélectionnée →
+            </text>
+          </g>
+        );
+      })()}
 
       {/* Zones */}
       {zones.map(zone => {

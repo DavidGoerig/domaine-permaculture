@@ -1,20 +1,116 @@
 {
   "flows": [
-    { "id": "fw1", "type": "water", "path": "M614 54 L556 54 L556 88" },
-    { "id": "fw2", "type": "water", "path": "M614 40 L450 40 L450 88" },
-    { "id": "fw3", "type": "water", "path": "M614 60 L174 60 L174 88" },
-    { "id": "ff1", "type": "fertility", "path": "M250 435 L124 435 L124 462" },
-    { "id": "ff2", "type": "fertility", "path": "M315 458 L315 488 L315 488" },
-    { "id": "ff3", "type": "fertility", "path": "M380 435 L506 435 L506 462" },
-    { "id": "ff4", "type": "fertility", "path": "M110 512 L110 488 L315 488 L315 458" },
-    { "id": "fh1", "type": "cuisine", "path": "M450 88 L450 96" },
-    { "id": "fh2", "type": "cuisine", "path": "M124 336 L124 162 L311 140" },
-    { "id": "fh3", "type": "cuisine", "path": "M267 512 L267 160 L370 140" },
-    { "id": "fh4", "type": "cuisine", "path": "M506 336 L506 170 L500 154" },
-    { "id": "fa1", "type": "animals", "path": "M250 330 L244 330" },
-    { "id": "fa2", "type": "animals", "path": "M250 364 L244 364" },
-    { "id": "fa3", "type": "animals", "path": "M380 330 L386 330" },
-    { "id": "fa4", "type": "animals", "path": "M380 364 L386 364" },
-    { "id": "ft1", "type": "transformation", "path": "M264 88 L264 60 L313 60 L313 96" }
+    {
+      "id": "fw1", "type": "water",
+      "path": "M614 54 L556 54 L556 88",
+      "name": "Eau → Aromatiques",
+      "fromZoneId": "stockage_eau", "toZoneId": "aromatiques",
+      "description": "Eau de pluie → 6 bacs aromatiques. Vérifier humidité selon espèce (thym/romarin = sec, basilic/persil = régulier)."
+    },
+    {
+      "id": "fw2", "type": "water",
+      "path": "M614 40 L450 40 L450 88",
+      "name": "Eau → Aquaponie",
+      "fromZoneId": "stockage_eau", "toZoneId": "aquaponie",
+      "description": "Alimentation bassins aquaponiques. Contrôler le niveau et le débit quotidiennement — flotteur ou timer."
+    },
+    {
+      "id": "fw3", "type": "water",
+      "path": "M614 60 L174 60 L174 88",
+      "name": "Eau → Serre semis",
+      "fromZoneId": "stockage_eau", "toZoneId": "serre_semis",
+      "description": "Arrosage serre et bacs salades hiver. Eau tempérée — éviter eau froide directe sur semis."
+    },
+    {
+      "id": "ff1", "type": "fertility",
+      "path": "M250 435 L124 435 L124 462",
+      "name": "Compost → Parcelle A",
+      "fromZoneId": "compost", "toZoneId": "parcelle_a",
+      "description": "Apport compost maturé (3 mois). 2–3 kg/m² en automne ou avant plantation printanière."
+    },
+    {
+      "id": "ff2", "type": "fertility",
+      "path": "M315 458 L315 488 L315 488",
+      "name": "Compost → Jachère",
+      "fromZoneId": "compost", "toZoneId": "jachere",
+      "description": "Amendement jachère avec compost + engrais vert. Prépare la rotation de la saison suivante."
+    },
+    {
+      "id": "ff3", "type": "fertility",
+      "path": "M380 435 L506 435 L506 462",
+      "name": "Compost → Parcelle B",
+      "fromZoneId": "compost", "toZoneId": "parcelle_b",
+      "description": "Fumure parcelle B (tomates, courges, maïs). Incorporer en surface, ne pas enfouir."
+    },
+    {
+      "id": "ff4", "type": "fertility",
+      "path": "M110 512 L110 488 L315 488 L315 458",
+      "name": "Pâturage → Compost",
+      "fromZoneId": "paturage", "toZoneId": "compost",
+      "description": "Fumier vaches + litière → composteur central. 3 mois de maturation avant usage au jardin."
+    },
+    {
+      "id": "fh1", "type": "cuisine",
+      "path": "M450 88 L450 96",
+      "name": "Aquaponie → Cuisine",
+      "fromZoneId": "aquaponie", "toZoneId": "cuisine",
+      "description": "Légumes aquaponiques (salades, cresson, roquette) + truites fario vers table d'hôtes."
+    },
+    {
+      "id": "fh2", "type": "cuisine",
+      "path": "M124 336 L124 162 L311 140",
+      "name": "Parcelle A → Cuisine",
+      "fromZoneId": "parcelle_a", "toZoneId": "cuisine",
+      "description": "Récoltes parcelle A : légumes racines, crucifères, légumineuses. Laver et stocker en cave."
+    },
+    {
+      "id": "fh3", "type": "cuisine",
+      "path": "M267 512 L267 160 L370 140",
+      "name": "Fromagerie → Cuisine",
+      "fromZoneId": "fromagerie", "toZoneId": "cuisine",
+      "description": "Fromages, yaourts, beurre depuis lait des vaches vers table d'hôtes ou affinage en cave."
+    },
+    {
+      "id": "fh4", "type": "cuisine",
+      "path": "M506 336 L506 170 L500 154",
+      "name": "Parcelle B → Cuisine",
+      "fromZoneId": "parcelle_b", "toZoneId": "cuisine",
+      "description": "Récoltes parcelle B : tomates, courges, haricots, maïs. Transformation (bocaux, séchage)."
+    },
+    {
+      "id": "fa1", "type": "animals",
+      "path": "M250 330 L244 330",
+      "name": "Poules → Verger",
+      "fromZoneId": "poulailler", "toZoneId": "verger",
+      "description": "Rotation poules dans verger — nettoyage insectes, fertilisation naturelle sous les arbres fruitiers."
+    },
+    {
+      "id": "fa2", "type": "animals",
+      "path": "M250 364 L244 364",
+      "name": "Poules → Parcelle A",
+      "fromZoneId": "poulailler", "toZoneId": "parcelle_a",
+      "description": "Passage poules en fin de saison — gratter, déparasiter et fertiliser sol avant repos hivernal."
+    },
+    {
+      "id": "fa3", "type": "animals",
+      "path": "M380 330 L386 330",
+      "name": "Poules → Parcelle B",
+      "fromZoneId": "poulailler", "toZoneId": "parcelle_b",
+      "description": "Rotation poules parcelle B après récolte tomates/courges. Préparation sol pour semis d'automne."
+    },
+    {
+      "id": "fa4", "type": "animals",
+      "path": "M380 364 L386 364",
+      "name": "Poules → Jachère",
+      "fromZoneId": "poulailler", "toZoneId": "jachere",
+      "description": "Poules sur jachère — élimination adventices et ravageurs, fertilisation avant semis engrais vert."
+    },
+    {
+      "id": "ft1", "type": "transformation",
+      "path": "M264 88 L264 60 L313 60 L313 96",
+      "name": "Séchoir → Cave",
+      "fromZoneId": "sechoir", "toZoneId": "cave",
+      "description": "Herbes, fruits et champignons séchés → stockage cave. Durée de vie : 12–18 mois en bocal hermétique."
+    }
   ]
 }

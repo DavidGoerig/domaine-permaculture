@@ -47,6 +47,10 @@ export interface Flow {
   id: string;
   type: FlowType;
   path: string;
+  name?: string;
+  fromZoneId?: string;
+  toZoneId?: string;
+  description?: string;
 }
 
 export interface FlowFilters {
