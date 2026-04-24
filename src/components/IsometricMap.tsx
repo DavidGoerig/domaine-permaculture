@@ -83,13 +83,6 @@ interface Props {
   onRotate?: (r: 0 | 1 | 2 | 3) => void;
 }
 
-/* ── BBox helper for auto-zoom ───────────────────────────────────────────── */
-function zoneScreenBBox(z: Zone, hz: number): { minX: number; minY: number; maxX: number; maxY: number } {
-  const pts4 = [iso(z.x, z.y), iso(z.x + z.width, z.y), iso(z.x + z.width, z.y + z.height), iso(z.x, z.y + z.height)];
-  const xs = pts4.map(p => p[0]);
-  const ys = pts4.map(p => p[1] - hz);
-  return { minX: Math.min(...xs), minY: Math.min(...ys), maxX: Math.max(...xs), maxY: Math.max(...ys) };
-}
 
 /* ── Component ───────────────────────────────────────────────────────────── */
 const IsometricMap: React.FC<Props> = ({
@@ -106,33 +99,36 @@ const IsometricMap: React.FC<Props> = ({
     }
   }
 
+  const rot = rotation ?? 0;
+
   // Override champignons_haie to full visual extent (matches FarmMap custom band)
   const zonesEff = zones.map(z =>
     z.id === 'champignons_haie' ? { ...z, x: 626, y: 178, width: 88, height: 510 } : z
   );
 
-  // Painter's algorithm: south-edge (y+h) ascending, then west-to-east (x) for ties
-  const sorted = [...zonesEff].sort(
-    (a, b) => (a.x + a.width + a.y + a.height) - (b.x + b.width + b.y + b.height)
-  );
+  // Painter's algorithm — sort key depends on rotation; haies always first
+  const isoDepth = (z: Zone): number => {
+    if (z.id.startsWith('haie')) return -1e9;
+    switch (rot) {
+      case 1: return (z.x + z.width) - z.y;
+      case 2: return -(z.x + z.y);
+      case 3: return (z.y + z.height) - z.x;
+      default: return z.x + z.width + z.y + z.height;
+    }
+  };
+  const sorted = [...zonesEff].sort((a, b) => isoDepth(a) - isoDepth(b));
 
   // Filter by visible types
   const visible = sorted.filter(z => !visibleTypes || visibleTypes.has(z.type));
 
-  // Auto-zoom: if exactly one zone visible, compute viewBox from its screen bbox
-  let viewBox = '0 0 830 420';
-  if (visible.length === 1) {
-    const z = visible[0];
-    const isHedge = z.id.startsWith('haie');
-    const hz = isHedge ? 0 : (HEIGHTS[z.type] ?? 10);
-    const bb = zoneScreenBBox(z, hz);
-    const pad = 30;
-    const vx = bb.minX - pad;
-    const vy = bb.minY - pad;
-    const vw = (bb.maxX - bb.minX) + pad * 2;
-    const vh = (bb.maxY - bb.minY) + pad * 2;
-    viewBox = `${vx.toFixed(1)} ${vy.toFixed(1)} ${vw.toFixed(1)} ${vh.toFixed(1)}`;
-  }
+  const viewBox = '0 0 830 420';
+
+  // Label angle follows east-west axis of current rotation
+  const labelAngle = (type: ZoneType): number => {
+    const isNS = type === 'champignons';
+    const base = rot % 2 === 0 ? ISO_ANGLE : -ISO_ANGLE;
+    return isNS ? -base : base;
+  };
 
   /* ── Plant strips on top face ─────────────────────────────────────────── */
   function renderPlantStrips(zone: Zone, lift: number = 0) {
@@ -222,7 +218,7 @@ const IsometricMap: React.FC<Props> = ({
                 <text x={scx} y={scy} textAnchor="middle" dominantBaseline="middle"
                   fontSize={stripH >= 7 ? 5.5 : stripH >= 5 ? 4.5 : 3.8}
                   fontFamily="system-ui" fill="#fff" fontWeight="600"
-                  transform={`rotate(${(type === 'champignons' ? -ISO_ANGLE : ISO_ANGLE).toFixed(2)}, ${scx.toFixed(1)}, ${scy.toFixed(1)})`}
+                  transform={`rotate(${labelAngle(type).toFixed(2)}, ${scx.toFixed(1)}, ${scy.toFixed(1)})`}
                   pointerEvents="none" style={{ userSelect: 'none' }}>
                   {p.name}
                 </text>
@@ -276,28 +272,37 @@ const IsometricMap: React.FC<Props> = ({
     const BR = isoR(x + w, y + h);
     const BL = isoR(x,     y + h);
 
-    // Top face lifted hz pixels above ground — ground stays fixed, roof goes up
+    // Top face lifted hz pixels above ground
+    const TL_top: [number, number] = [TL[0], TL[1] - hz];
     const TR_top: [number, number] = [TR[0], TR[1] - hz];
     const BR_top: [number, number] = [BR[0], BR[1] - hz];
     const BL_top: [number, number] = [BL[0], BL[1] - hz];
 
+    // Visible walls depend on rotation: viewer at NE(0) SE(1) SW(2) NW(3)
+    type Wall = [number,number][];
+    let wall1: Wall, wall2: Wall;
+    switch (rot) {
+      case 1: wall1 = [TL,BL,BL_top,TL_top]; wall2 = [TL,TR,TR_top,TL_top]; break;
+      case 2: wall1 = [TL,TR,TR_top,TL_top]; wall2 = [TL,BL,BL_top,TL_top]; break;
+      case 3: wall1 = [BL,BR,BR_top,BL_top]; wall2 = [TL,BL,BL_top,TL_top]; break;
+      default: wall1 = [BL,BR,BR_top,BL_top]; wall2 = [BR,TR,TR_top,BR_top];
+    }
+
     const [lcx, lcy_g] = isoR(x + w / 2, y + h / 2);
-    const lcy  = lcy_g - hz;  // label on top face
-    const isoW = TR[0] - TL[0];
+    const lcy  = lcy_g - hz;
+    const isoW = Math.abs(TR[0] - TL[0]);
     const buildingTypes: ZoneType[] = ['habitat', 'transformation', 'stockage'];
     const hasPlants  = !buildingTypes.includes(type) && plants.some(p => p.zones.includes(id));
     const isTree     = (id === 'verger' || id === 'noyers') && !hasPlants;
 
     return (
       <g key={id} onClick={e => { e.stopPropagation(); onSelect(id); }} style={{ cursor: 'pointer' }} opacity={isHedge ? 0.55 : 1}>
-        {/* South wall — ground south edge → top south edge */}
         {hz > 0 && (
-          <polygon points={pts([BL, BR, BR_top, BL_top])}
+          <polygon points={pts(wall1 as [number,number][])}
             fill={darken(colors.fill, 0.68)} stroke={strokeCol} strokeWidth={sw} strokeLinejoin="round"/>
         )}
-        {/* East wall — ground east edge → top east edge */}
         {hz > 0 && (
-          <polygon points={pts([BR, TR, TR_top, BR_top])}
+          <polygon points={pts(wall2 as [number,number][])}
             fill={darken(colors.fill, 0.52)} stroke={strokeCol} strokeWidth={sw} strokeLinejoin="round"/>
         )}
         {/* Top face (with plant strips if applicable) */}
@@ -309,7 +314,7 @@ const IsometricMap: React.FC<Props> = ({
           <text x={lcx} y={lcy} textAnchor="middle" dominantBaseline="middle"
             fontSize={isoW > 80 ? 7.5 : isoW > 50 ? 6.5 : isoW > 30 ? 5.5 : 5}
             fontFamily="system-ui" fill="#222" fontWeight={isSelected ? '700' : '500'}
-            transform={`rotate(${(type === 'champignons' ? -ISO_ANGLE : ISO_ANGLE).toFixed(2)}, ${lcx.toFixed(1)}, ${lcy.toFixed(1)})`}
+            transform={`rotate(${labelAngle(type).toFixed(2)}, ${lcx.toFixed(1)}, ${lcy.toFixed(1)})`}
             pointerEvents="none" style={{ userSelect: 'none' }}>
             {name}
           </text>
@@ -317,7 +322,7 @@ const IsometricMap: React.FC<Props> = ({
         {zone.surfaceM2 && isoW >= 90 && !hasPlants && (
           <text x={lcx} y={lcy + 8} textAnchor="middle" dominantBaseline="middle"
             fontSize="5.5" fontFamily="system-ui" fill="#555"
-            transform={`rotate(${ISO_ANGLE.toFixed(2)}, ${lcx.toFixed(1)}, ${(lcy + 8).toFixed(1)})`}
+            transform={`rotate(${labelAngle(type).toFixed(2)}, ${lcx.toFixed(1)}, ${(lcy + 8).toFixed(1)})`}
             pointerEvents="none" style={{ userSelect: 'none' }}>
             {zone.surfaceM2.toLocaleString('fr')} m²
           </text>
@@ -328,7 +333,6 @@ const IsometricMap: React.FC<Props> = ({
   }
 
   /* ── Compass labels by rotation ──────────────────────────────────────── */
-  const rot = rotation ?? 0;
   const compassLabels = [
     { NE: 'N', SE: 'E', SW: 'S', NW: 'O', front: 'S' },
     { NE: 'E', SE: 'S', SW: 'O', NW: 'N', front: 'O' },

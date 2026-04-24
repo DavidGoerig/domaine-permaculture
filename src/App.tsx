@@ -198,7 +198,19 @@ const App: React.FC = () => {
 
         {/* Toggle types de zones — uniquement vue isométrique */}
         {mapView === 'isometrique' && (
-          <div style={{ display: 'flex', gap: '3px', flexWrap: 'wrap', flexShrink: 0 }}>
+          <div style={{ display: 'flex', gap: '3px', flexWrap: 'wrap', flexShrink: 0, alignItems: 'center' }}>
+            <button
+              onClick={() => setVisibleTypes(
+                visibleTypes.size === ALL_ZONE_TYPES.length ? new Set() : new Set(ALL_ZONE_TYPES)
+              )}
+              style={{
+                fontSize: '9px', padding: '2px 7px', borderRadius: '10px',
+                border: '1px solid #999', background: '#eee', color: '#444',
+                cursor: 'pointer', fontWeight: 600, lineHeight: 1.4,
+              }}
+            >
+              {visibleTypes.size === ALL_ZONE_TYPES.length ? 'Aucun' : 'Tout'}
+            </button>
             {ALL_ZONE_TYPES.map(t => {
               const active = visibleTypes.has(t);
               return (
