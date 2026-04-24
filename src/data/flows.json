@@ -5,14 +5,14 @@
       "path": "M614 54 L556 54 L556 88",
       "name": "Eau → Aromatiques",
       "fromZoneId": "stockage_eau", "toZoneId": "aromatiques",
-      "description": "Eau de pluie → 6 bacs aromatiques. Vérifier humidité selon espèce (thym/romarin = sec, basilic/persil = régulier)."
+      "description": "Eau de pluie → 6 bacs aromatiques. Humidité selon espèce (thym/romarin = sec, basilic/persil = régulier)."
     },
     {
       "id": "fw2", "type": "water",
       "path": "M614 40 L450 40 L450 88",
       "name": "Eau → Aquaponie",
       "fromZoneId": "stockage_eau", "toZoneId": "aquaponie",
-      "description": "Alimentation bassins aquaponiques. Contrôler le niveau et le débit quotidiennement — flotteur ou timer."
+      "description": "Alimentation bassins aquaponiques. Contrôler niveau et débit quotidiennement — flotteur ou timer."
     },
     {
       "id": "fw3", "type": "water",
@@ -22,6 +22,21 @@
       "description": "Arrosage serre et bacs salades hiver. Eau tempérée — éviter eau froide directe sur semis."
     },
     {
+      "id": "fw4", "type": "water",
+      "path": "M614 75 L90 75 L90 344 L124 344",
+      "name": "Eau → Parcelle A",
+      "fromZoneId": "stockage_eau", "toZoneId": "parcelle_a",
+      "description": "Irrigation goutte-à-goutte parcelle A depuis cuve 5000L. Priorité légumes-racines et crucifères."
+    },
+    {
+      "id": "fw5", "type": "water",
+      "path": "M625 88 L625 218 L506 218",
+      "name": "Eau → Parcelle B",
+      "fromZoneId": "stockage_eau", "toZoneId": "parcelle_b",
+      "description": "Irrigation parcelle B (tomates, courges, haricots). Arrosage le matin, éviter feuillage mouillé."
+    },
+
+    {
       "id": "ff1", "type": "fertility",
       "path": "M250 435 L124 435 L124 462",
       "name": "Compost → Parcelle A",
@@ -30,17 +45,17 @@
     },
     {
       "id": "ff2", "type": "fertility",
-      "path": "M315 458 L315 488 L315 488",
+      "path": "M380 440 L506 440",
       "name": "Compost → Jachère",
       "fromZoneId": "compost", "toZoneId": "jachere",
-      "description": "Amendement jachère avec compost + engrais vert. Prépare la rotation de la saison suivante."
+      "description": "Amendement jachère — compost semi-maturé + engrais vert. Prépare la rotation de la saison suivante."
     },
     {
       "id": "ff3", "type": "fertility",
-      "path": "M380 435 L506 435 L506 462",
+      "path": "M380 420 L500 420 L500 336",
       "name": "Compost → Parcelle B",
       "fromZoneId": "compost", "toZoneId": "parcelle_b",
-      "description": "Fumure parcelle B (tomates, courges, maïs). Incorporer en surface, ne pas enfouir."
+      "description": "Fumure parcelle B (tomates, courges, maïs). Incorporer en surface, ne pas enfouir profondément."
     },
     {
       "id": "ff4", "type": "fertility",
@@ -49,6 +64,28 @@
       "fromZoneId": "paturage", "toZoneId": "compost",
       "description": "Fumier vaches + litière → composteur central. 3 mois de maturation avant usage au jardin."
     },
+    {
+      "id": "ff5", "type": "fertility",
+      "path": "M315 400 L315 412",
+      "name": "Poulailler → Compost",
+      "fromZoneId": "poulailler", "toZoneId": "compost",
+      "description": "Fumier volailles + paille → composteur. Mélanger aux matières carbonées, ratio C/N 25:1."
+    },
+    {
+      "id": "ff6", "type": "fertility",
+      "path": "M255 412 L124 412 L124 336",
+      "name": "Compost → Verger",
+      "fromZoneId": "compost", "toZoneId": "verger",
+      "description": "Compost maturé en mulch sous les arbres fruitiers. 3–5 cm autour des troncs, 2 fois par an."
+    },
+    {
+      "id": "ff7", "type": "fertility",
+      "path": "M80 172 L80 430 L250 430",
+      "name": "Earthship → Compost",
+      "fromZoneId": "earthship", "toZoneId": "compost",
+      "description": "WC sèches → composteur (apport azoté). Compost terminé en 6 mois avec copeaux de bois."
+    },
+
     {
       "id": "fh1", "type": "cuisine",
       "path": "M450 88 L450 96",
@@ -75,42 +112,149 @@
       "path": "M506 336 L506 170 L500 154",
       "name": "Parcelle B → Cuisine",
       "fromZoneId": "parcelle_b", "toZoneId": "cuisine",
-      "description": "Récoltes parcelle B : tomates, courges, haricots, maïs. Transformation (bocaux, séchage)."
+      "description": "Récoltes parcelle B : tomates, courges, haricots, maïs. Transformation en bocaux et séchage."
     },
     {
+      "id": "fh5", "type": "cuisine",
+      "path": "M534 88 L496 88 L496 96",
+      "name": "Aromatiques → Cuisine",
+      "fromZoneId": "aromatiques", "toZoneId": "cuisine",
+      "description": "Herbes fraîches → cuisine table d'hôtes. Cueillette le matin juste avant service."
+    },
+    {
+      "id": "fh6", "type": "cuisine",
+      "path": "M200 218 L200 140 L311 140",
+      "name": "Verger → Cuisine",
+      "fromZoneId": "verger", "toZoneId": "cuisine",
+      "description": "Fruits du verger (pommes, poires, prunes, cerises) → cuisine et transformation en bocaux."
+    },
+    {
+      "id": "fh7", "type": "cuisine",
+      "path": "M626 340 L570 340 L570 130 L501 130",
+      "name": "Champignons → Cuisine",
+      "fromZoneId": "champignons_haie", "toZoneId": "cuisine",
+      "description": "Shiitake et pleurotes frais → cuisine. Récolte à maturité, cuire dans les 48h ou sécher."
+    },
+    {
+      "id": "fh8", "type": "cuisine",
+      "path": "M280 590 L280 165 L370 140",
+      "name": "Noyers → Cuisine",
+      "fromZoneId": "noyers", "toZoneId": "cuisine",
+      "description": "Noix fraîches et séchées → cuisine. Récolte automne, séchage 3 semaines avant stockage cave."
+    },
+    {
+      "id": "fh9", "type": "cuisine",
+      "path": "M432 545 L480 545 L480 125 L501 125",
+      "name": "Ruches → Cuisine",
+      "fromZoneId": "ruches", "toZoneId": "cuisine",
+      "description": "Miel et cire de ruche → cuisine et vente directe. Extraction juin et septembre après inspection."
+    },
+    {
+      "id": "fh10", "type": "cuisine",
+      "path": "M303 125 L311 125",
+      "name": "Salades hiver → Cuisine",
+      "fromZoneId": "salades_hiver", "toZoneId": "cuisine",
+      "description": "Salades et cresson sous serre → cuisine hiver. Coupe continue, repousse en 2 semaines."
+    },
+    {
+      "id": "fh11", "type": "cuisine",
+      "path": "M380 241 L406 241 L406 154",
+      "name": "Vivaces → Cuisine",
+      "fromZoneId": "vivaces", "toZoneId": "cuisine",
+      "description": "Vivaces comestibles (artichaut, rhubarbe, oseille) → cuisine. Production pluriannuelle sans ressemer."
+    },
+    {
+      "id": "fh12", "type": "cuisine",
+      "path": "M354 88 L370 88 L370 96",
+      "name": "Cave → Cuisine",
+      "fromZoneId": "cave", "toZoneId": "cuisine",
+      "description": "Bocaux, légumes secs, fruits séchés → cuisine depuis cave. Stock pivot pour l'hiver."
+    },
+    {
+      "id": "fh13", "type": "cuisine",
+      "path": "M340 270 L340 155 L370 140",
+      "name": "Poulailler → Cuisine",
+      "fromZoneId": "poulailler", "toZoneId": "cuisine",
+      "description": "Œufs frais du poulailler → cuisine quotidiennement. 3–4 œufs/poule/jour en belle saison."
+    },
+
+    {
       "id": "fa1", "type": "animals",
-      "path": "M250 330 L244 330",
+      "path": "M250 300 L225 300 L225 270 L238 270",
       "name": "Poules → Verger",
       "fromZoneId": "poulailler", "toZoneId": "verger",
       "description": "Rotation poules dans verger — nettoyage insectes, fertilisation naturelle sous les arbres fruitiers."
     },
     {
       "id": "fa2", "type": "animals",
-      "path": "M250 364 L244 364",
+      "path": "M250 370 L238 370",
       "name": "Poules → Parcelle A",
       "fromZoneId": "poulailler", "toZoneId": "parcelle_a",
-      "description": "Passage poules en fin de saison — gratter, déparasiter et fertiliser sol avant repos hivernal."
+      "description": "Passage poules fin de saison sur parcelle A — gratter, déparasiter sol avant repos hivernal."
     },
     {
       "id": "fa3", "type": "animals",
-      "path": "M380 330 L386 330",
+      "path": "M380 295 L392 295",
       "name": "Poules → Parcelle B",
       "fromZoneId": "poulailler", "toZoneId": "parcelle_b",
-      "description": "Rotation poules parcelle B après récolte tomates/courges. Préparation sol pour semis d'automne."
+      "description": "Rotation poules parcelle B après récolte tomates/courges. Préparation sol pour semis automne."
     },
     {
       "id": "fa4", "type": "animals",
-      "path": "M380 364 L386 364",
+      "path": "M380 375 L392 375",
       "name": "Poules → Jachère",
       "fromZoneId": "poulailler", "toZoneId": "jachere",
       "description": "Poules sur jachère — élimination adventices et ravageurs, fertilisation avant semis engrais vert."
     },
+    {
+      "id": "fa5", "type": "animals",
+      "path": "M210 547 L218 547",
+      "name": "Vaches → Fromagerie",
+      "fromZoneId": "paturage", "toZoneId": "fromagerie",
+      "description": "Lait des vaches laitières → fromagerie. Traite matin et soir, 15–20L/vache/jour."
+    },
+    {
+      "id": "fa6", "type": "animals",
+      "path": "M378 590 L378 582",
+      "name": "Mellifères → Ruches",
+      "fromZoneId": "melliferes", "toZoneId": "ruches",
+      "description": "Plantes mellifères → ruches (nectar et pollen). Floraison échelonnée mars–octobre, rayon 2 km."
+    },
+
     {
       "id": "ft1", "type": "transformation",
       "path": "M264 88 L264 60 L313 60 L313 96",
       "name": "Séchoir → Cave",
       "fromZoneId": "sechoir", "toZoneId": "cave",
       "description": "Herbes, fruits et champignons séchés → stockage cave. Durée de vie : 12–18 mois en bocal hermétique."
+    },
+    {
+      "id": "ft2", "type": "transformation",
+      "path": "M535 20 L264 20 L264 88",
+      "name": "Aromatiques → Séchoir",
+      "fromZoneId": "aromatiques", "toZoneId": "sechoir",
+      "description": "Herbes aromatiques → séchoir solaire. Suspendre en bottes à 40°C max, 5–10 jours selon espèce."
+    },
+    {
+      "id": "ft3", "type": "transformation",
+      "path": "M160 218 L160 175 L264 175 L264 88",
+      "name": "Verger → Séchoir",
+      "fromZoneId": "verger", "toZoneId": "sechoir",
+      "description": "Fruits du verger → séchoir (pommes, prunes, abricots). Trancher 5mm, 55–60°C, 8–12h."
+    },
+    {
+      "id": "ft4", "type": "transformation",
+      "path": "M316 545 L380 545 L380 95 L354 95 L354 88",
+      "name": "Fromagerie → Cave",
+      "fromZoneId": "fromagerie", "toZoneId": "cave",
+      "description": "Fromages affinés → cave pour maturation à 10°C. Retourner 2×/semaine, 1–6 mois selon type."
+    },
+    {
+      "id": "ft5", "type": "transformation",
+      "path": "M174 88 L174 172 L124 172 L124 344",
+      "name": "Serre → Parcelle A",
+      "fromZoneId": "serre_semis", "toZoneId": "parcelle_a",
+      "description": "Plants de la serre → repiquage parcelle A. Durcir 7–10 jours avant mise en terre définitive."
     }
   ]
 }

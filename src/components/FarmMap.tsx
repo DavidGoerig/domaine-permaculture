@@ -765,36 +765,6 @@ const FarmMap: React.FC<Props> = ({
         );
       })}
 
-      {/* Tooltip flux sélectionné */}
-      {selectedFlowId && (() => {
-        const flow = flows.find(f => f.id === selectedFlowId);
-        if (!flow?.name) return null;
-        const mid = getPathMidpoint(flow.path);
-        const TW = 230;
-        const TH = 52;
-        const tx = Math.min(Math.max(mid.x - TW / 2, 4), 760 - TW - 4);
-        const ty = mid.y < 50 ? mid.y + 12 : mid.y - TH - 10;
-        const color = FLOW_COLORS[flow.type];
-        const desc = flow.description ?? '';
-        const line1 = desc.slice(0, 40);
-        const line2 = desc.length > 40 ? desc.slice(40, 80) + (desc.length > 80 ? '…' : '') : '';
-        return (
-          <g pointerEvents="none">
-            <rect x={tx} y={ty} width={TW} height={TH} rx={4}
-              fill="#fff" stroke={color} strokeWidth={1.5} opacity={0.97}/>
-            <rect x={tx} y={ty} width={TW} height={13} rx={4} fill={color} opacity={0.15}/>
-            <text x={tx + 7} y={ty + 9.5} fontSize="8.5" fontWeight="700" fill={color} fontFamily="system-ui">
-              {flow.name}
-            </text>
-            <text x={tx + 7} y={ty + 22} fontSize="7" fill="#555" fontFamily="system-ui">{line1}</text>
-            {line2 && <text x={tx + 7} y={ty + 32} fontSize="7" fill="#555" fontFamily="system-ui">{line2}</text>}
-            <text x={tx + 7} y={ty + 46} fontSize="6.5" fill="#aaa" fontFamily="system-ui">
-              Cliquer ailleurs pour fermer · Zone source sélectionnée →
-            </text>
-          </g>
-        );
-      })()}
-
       {/* Zones */}
       {zones.map(zone => {
         if (zone.id === 'champignons_haie') return null;
@@ -845,6 +815,39 @@ const FarmMap: React.FC<Props> = ({
           pointerEvents="none"
         />
       )}
+
+      {/* Tooltip flux sélectionné — rendu en dernier pour passer au-dessus des zones */}
+      {selectedFlowId && (() => {
+        const flow = flows.find(f => f.id === selectedFlowId);
+        if (!flow?.name) return null;
+        const mid = getPathMidpoint(flow.path);
+        const TW = 240;
+        const TH = 64;
+        const tx = Math.min(Math.max(mid.x - TW / 2, 4), 760 - TW - 4);
+        const ty = mid.y < 80 ? mid.y + 12 : mid.y - TH - 10;
+        const color = FLOW_COLORS[flow.type];
+        const desc = flow.description ?? '';
+        const line1 = desc.slice(0, 44);
+        const line2 = desc.length > 44 ? desc.slice(44, 88) : '';
+        const line3 = desc.length > 88 ? desc.slice(88, 132) + (desc.length > 132 ? '…' : '') : '';
+        return (
+          <g pointerEvents="none">
+            <rect x={tx} y={ty} width={TW} height={TH} rx={4}
+              fill="#fff" stroke={color} strokeWidth={1.5} opacity={0.97}
+              filter="drop-shadow(0 2px 4px rgba(0,0,0,0.15))"/>
+            <rect x={tx} y={ty} width={TW} height={13} rx={4} fill={color} opacity={0.15}/>
+            <text x={tx + 7} y={ty + 9.5} fontSize="8.5" fontWeight="700" fill={color} fontFamily="system-ui">
+              {flow.name}
+            </text>
+            <text x={tx + 7} y={ty + 22} fontSize="7" fill="#555" fontFamily="system-ui">{line1}</text>
+            {line2 && <text x={tx + 7} y={ty + 32} fontSize="7" fill="#555" fontFamily="system-ui">{line2}</text>}
+            {line3 && <text x={tx + 7} y={ty + 42} fontSize="7" fill="#555" fontFamily="system-ui">{line3}</text>}
+            <text x={tx + 7} y={ty + 57} fontSize="6.5" fill="#aaa" fontFamily="system-ui">
+              Cliquer ailleurs pour fermer
+            </text>
+          </g>
+        );
+      })()}
 
       {/* Légende */}
       <rect x="10" y="704" width="590" height="22" rx="4" fill="#fff" opacity="0.85"/>
