@@ -594,15 +594,17 @@ const FarmMap: React.FC<Props> = ({
       <g key={zone.id} onClick={e => { e.stopPropagation(); onSelect(zone.id); }} style={{ cursor: 'pointer' }}>
         <rect
           x={zone.x} y={zone.y} width={zone.width} height={zone.height} rx={5}
-          fill={colors.fill}
+          fill={colors.fill} fillOpacity={selected ? 0.55 : 0.35}
           stroke={selected ? '#333' : colors.stroke}
-          strokeWidth={selected ? 2.5 : 1}
+          strokeWidth={selected ? 2.5 : 1.2}
         />
         {lines.map((line, i) => (
           <text
             key={i} x={cx} y={startY + i * lineH}
             textAnchor="middle" dominantBaseline="middle"
-            fontSize={fontSize} fontWeight="500" fontFamily="system-ui" fill="#222" pointerEvents="none"
+            fontSize={fontSize} fontWeight="600" fontFamily="system-ui"
+            fill="#111" stroke="#fff" strokeWidth="2.5" paintOrder="stroke"
+            pointerEvents="none"
           >
             {line}
           </text>
@@ -611,7 +613,9 @@ const FarmMap: React.FC<Props> = ({
           <text
             x={cx} y={startY + lines.length * lineH + 3}
             textAnchor="middle" dominantBaseline="middle"
-            fontSize={6.5} fontFamily="system-ui" fill={colors.stroke} pointerEvents="none"
+            fontSize={6.5} fontFamily="system-ui" fill={colors.stroke}
+            stroke="#fff" strokeWidth="2" paintOrder="stroke"
+            pointerEvents="none"
           >
             {zone.surfaceM2 ? `↗ ${zone.surfaceM2.toLocaleString('fr')} m²` : `↗ ${zone.outputs[0]}`}
           </text>
@@ -647,6 +651,15 @@ const FarmMap: React.FC<Props> = ({
           </marker>
         ))}
       </defs>
+
+      {/* Realistic background photo — zones view only */}
+      {viewMode === 'zones' && (
+        <image
+          href="/zones-background.jpg"
+          x="0" y="0" width="760" height="860"
+          preserveAspectRatio="none"
+        />
+      )}
 
       {/* Zone 0 — Earthship header (content view) */}
       {viewMode === 'content' && (
@@ -776,13 +789,15 @@ const FarmMap: React.FC<Props> = ({
             <g key={zone.id} onClick={e => { e.stopPropagation(); onSelect(zone.id); }} style={{ cursor: 'pointer' }}>
               <rect
                 x={zone.x} y={zone.y} width={zone.width} height={zone.height} rx="4"
-                fill="#3d6b2c" opacity={selected ? 0.45 : 0.25}
+                fill="#3d6b2c" opacity={selected ? 0.35 : 0.15}
                 stroke={selected ? '#3d6b2c' : 'none'} strokeWidth="1.5"
               />
               <text
                 x={zone.x + zone.width / 2} y={zone.y + 11}
                 textAnchor="middle" fontSize="7.5" fontFamily="system-ui"
-                fill="#3d6b2c" fontWeight="500" pointerEvents="none"
+                fill="#3d6b2c" fontWeight="600"
+                stroke="#fff" strokeWidth="2" paintOrder="stroke"
+                pointerEvents="none"
               >
                 {zone.name === 'Haie fruitière Z1 → Z2'
                   ? 'haie fruitière — mûres · framboises · cassis · groseilles · sureau · caseille'
