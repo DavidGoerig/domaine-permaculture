@@ -1,0 +1,96 @@
+{
+  "mushroomBeds": [
+    {
+      "id": "sh_haie_1",
+      "name": "Rondins shiitake — Haie Z1/Z2 (lot 1)",
+      "species": "shiitake",
+      "substrate": "rondin_chene",
+      "zoneId": "champignons_haie",
+      "inoculationWeek": 10,
+      "firstHarvestWeek": 36,
+      "harvestWeeks": [36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20],
+      "yieldKgPerYear": 8,
+      "careSchedule": {
+        "1-8": ["Rondins en repos hivernal — maintenir humidité légère"],
+        "9-16": ["Choc hydrique : trempage rondins 24h (eau froide) pour stimuler fructification", "Inoculer nouveaux rondins : percer (12mm), insérer chevilles mycélium, sceller cire abeille"],
+        "17-24": ["Arroser rondins si sec (1×/semaine minimum)", "Récolter premiers champignons (rondin lot précédent)", "Surveiller contamination (moisissures vertes = retirer le rondin)"],
+        "25-32": ["Arroser généreusement (chaleur)", "Récolter avant ouverture chapeau (25–30% ouverts)"],
+        "33-40": ["Récolte abondante automne — couper avec couteau propre", "Sécher excédents (séchoir solaire 3–4h à 40°C)"],
+        "41-48": ["Choc hydrique automne (trempage) pour dernière vague", "Retirer rondins épuisés (vie : 3–5 ans)"],
+        "49-56": ["Rondins en repos — couvrir de paille si gel fort"]
+      },
+      "notes": "Rondins de chêne sessile 40cm × 15cm diam. — Durée de vie 3–5 ans. Repos 6 semaines entre chaque choc hydrique."
+    },
+    {
+      "id": "sh_haie_2",
+      "name": "Rondins shiitake — Haie Z1/Z2 (lot 2)",
+      "species": "shiitake",
+      "substrate": "rondin_hetre",
+      "zoneId": "champignons_haie",
+      "inoculationWeek": 14,
+      "firstHarvestWeek": 42,
+      "harvestWeeks": [42, 43, 44, 45, 46, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24],
+      "yieldKgPerYear": 6,
+      "careSchedule": {
+        "9-16": ["Inoculer ce lot hêtre (sem. 14) — en décalage du lot chêne", "Incubation : 6 mois en lieu sombre et humide"],
+        "17-40": ["Maintenir humidité (spray quotidien si sec)", "Observer colonisation mycélium (blanc dense)"],
+        "41-48": ["Premier choc hydrique → premières fructifications", "Récolter à bouton semi-ouvert"]
+      },
+      "notes": "Lot décalé de 4 semaines pour étaler la production. Hêtre donne champignons plus rapidement que chêne."
+    },
+    {
+      "id": "pl_haie_z2",
+      "name": "Palissades pleurotes — Bordure Z2",
+      "species": "pleurote",
+      "substrate": "rondin_peuplier",
+      "zoneId": "champignons_haie",
+      "inoculationWeek": 9,
+      "firstHarvestWeek": 15,
+      "harvestWeeks": [15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48],
+      "yieldKgPerYear": 12,
+      "careSchedule": {
+        "1-8": ["Vague hivernale si T° 5–15°C (pleurote aime le frais)", "Récolter si fructification en grappes"],
+        "9-16": ["Inoculer nouveaux substrats (printemps)", "Humidification régulière palissades (2×/semaine)"],
+        "17-32": ["Pause estivale si T° > 25°C — maintenir ombre et humidité", "Arroser matin et soir en canicule"],
+        "33-48": ["Saison principale automne — récoltes abondantes", "Récolter en grappes entières quand bords encore enroulés"]
+      },
+      "notes": "Pleurote en huître — aime 10–20°C. 2 saisons/an : printemps et automne. Substrat peuplier ou hêtre. Durée de vie substrat : 2–3 ans."
+    },
+    {
+      "id": "sh_z3",
+      "name": "Rondins shiitake — Bordures terrain (lot 3)",
+      "species": "shiitake",
+      "substrate": "rondin_chene",
+      "zoneId": "champignons_haie",
+      "inoculationWeek": 12,
+      "firstHarvestWeek": 38,
+      "harvestWeeks": [38, 39, 40, 41, 42, 43, 44, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24],
+      "yieldKgPerYear": 10,
+      "careSchedule": {
+        "9-16": ["Inoculer rondins de noyers élagués (chêne + noyer mélangé)", "Incubation en tas bâché à l'ombre"],
+        "17-32": ["Arroser si > 10j sans pluie", "Récolter premier flush si rondin précédent"],
+        "33-40": ["Trempage choc hydrique (sep–oct)", "Récolte d'automne principale — étaler sur séchoir si excédent"],
+        "41-56": ["Repos et protection gel pour rondins neufs"]
+      },
+      "notes": "Utilisation des branches de noyers et chênes élagués — économie circulaire. Zone ombragée naturellement par les arbres."
+    },
+    {
+      "id": "pl_z3",
+      "name": "Palissades pleurotes — Bordures terrain (paille)",
+      "species": "pleurote",
+      "substrate": "paille",
+      "zoneId": "champignons_haie",
+      "inoculationWeek": 10,
+      "firstHarvestWeek": 16,
+      "harvestWeeks": [16, 17, 18, 19, 20, 21, 22, 23, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47],
+      "yieldKgPerYear": 15,
+      "careSchedule": {
+        "9-16": ["Inoculer ballots paille de seigle/blé (pasteurisée)", "Maintenir sacs humides à 85–90%"],
+        "17-32": ["Arroser 2×/jour si sec — humidité critique", "Récolter grappes entières"],
+        "33-48": ["Deuxième flush automne — production maximale", "Sécher excédents immédiatement"],
+        "49-56": ["Repos substrat ou compostage si épuisé"]
+      },
+      "notes": "Paille pasteurisée (eau bouillante 1h) — plus rapide que bois. Durée substrat : 6–8 mois. Résidus → compost."
+    }
+  ]
+}

@@ -1,5 +1,7 @@
 import React from 'react';
-import type { Zone, ZoneType, WeekRange, Task } from '../types/domain';
+import type { Zone, ZoneType, WeekRange, Task, Plant, BeeHive } from '../types/domain';
+import PlantCard from './PlantCard';
+import ZoneYieldPanel from './ZoneYieldPanel';
 
 const TYPE_LABELS: Record<ZoneType, string> = {
   habitat:        'Habitat passif',
@@ -41,9 +43,14 @@ function getTasks(zone: Zone, week: number): Task[] {
 interface Props {
   zone: Zone | null;
   currentWeek: number;
+  allPlants: Plant[];
+  beehives?: BeeHive[];
+  onItemSelect: (id: string, type: 'plant' | 'animal' | 'mushroom' | 'beehive') => void;
 }
 
-const SidePanel: React.FC<Props> = ({ zone, currentWeek }) => {
+const SidePanel: React.FC<Props> = ({ zone, currentWeek, allPlants, beehives, onItemSelect }) => {
+  const [showPlantCards, setShowPlantCards] = React.useState(false);
+
   if (!zone) {
     return (
       <aside style={base}>
@@ -55,6 +62,9 @@ const SidePanel: React.FC<Props> = ({ zone, currentWeek }) => {
   }
 
   const tasks = getTasks(zone, currentWeek);
+  const range = getWeekRange(currentWeek);
+  const zonePlants = allPlants.filter(p => p.zones.includes(zone.id));
+  const hasYield = zone.surfaceM2 && zonePlants.length > 0;
 
   return (
     <aside style={base}>
@@ -87,6 +97,50 @@ const SidePanel: React.FC<Props> = ({ zone, currentWeek }) => {
         {/* Description */}
         <p style={{ color: '#555', marginBottom: '12px', fontSize: '11px' }}>{zone.description}</p>
 
+        {/* Rendements calculés */}
+        {hasYield && (
+          <ZoneYieldPanel zone={zone} allPlants={allPlants} />
+        )}
+
+        {/* Ruches — détail par ruche */}
+        {zone.id === 'ruches' && beehives && beehives.length > 0 && (
+          <Section title="Ruches — Détail" accent="#EF9F27">
+            {beehives.map(hive => {
+              const hiveTasks = [
+                ...(hive.schedule['1-56'] ?? []),
+                ...(hive.schedule[range] ?? []),
+              ];
+              return (
+                <div key={hive.id} style={{ marginBottom: '8px', border: '1px solid #f0e0b0', borderRadius: '4px', overflow: 'hidden' }}>
+                  <div style={{ padding: '4px 8px', background: '#fff8e8', borderBottom: '1px solid #f0e0b0', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <span style={{ fontWeight: 600, fontSize: '11px', color: '#333' }}>{hive.name}</span>
+                    <span style={{ fontSize: '9px', color: '#cc9a3a', background: '#fff0d0', padding: '1px 5px', borderRadius: '3px' }}>{hive.type}</span>
+                  </div>
+                  <div style={{ padding: '4px 8px', fontSize: '10px', color: '#3a7a3a', display: 'flex', gap: '8px', flexWrap: 'wrap', borderBottom: hiveTasks.length > 0 ? '1px solid #f0e0b0' : 'none' }}>
+                    <span>~{hive.yearlyHoneyKg} kg miel/an</span>
+                    <span>~{hive.yearlyWaxG} g cire/an</span>
+                  </div>
+                  {hiveTasks.length > 0 && (
+                    <div style={{ padding: '4px 8px' }}>
+                      {hiveTasks.map((t, i) => {
+                        const pc = PRIORITY_COLORS[t.priority] ?? PRIORITY_COLORS.low;
+                        return (
+                          <div key={i} style={{ padding: '2px 6px 2px 8px', borderLeft: `2px solid ${pc.border}`, background: pc.bg, borderRadius: '3px', marginBottom: '2px', fontSize: '10px', color: '#333' }}>
+                            {t.text}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+            <div style={{ fontSize: '10px', fontWeight: 600, color: '#3a7a3a', marginTop: '2px' }}>
+              Total : ~{beehives.reduce((s, h) => s + h.yearlyHoneyKg, 0)} kg miel · ~{beehives.reduce((s, h) => s + h.yearlyWaxG, 0)} g cire / an
+            </div>
+          </Section>
+        )}
+
         {/* Tâches semaine */}
         <Section title={`Tâches — Sem. ${currentWeek}`} accent="#E8593C">
           {tasks.length === 0
@@ -110,20 +164,47 @@ const SidePanel: React.FC<Props> = ({ zone, currentWeek }) => {
           }
         </Section>
 
-        {/* Productions */}
-        {zone.outputs && zone.outputs.length > 0 && (
-          <Section title="Productions" accent="#3aaa5a">
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '3px' }}>
-              {zone.outputs.map((o, i) => (
-                <span key={i} style={badge('#ddeeff', '#1155aa')}>{o}</span>
-              ))}
+        {/* Fiches plantes */}
+        {zonePlants.length > 0 && (
+          <section style={{ marginBottom: '12px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '5px' }}>
+              <h3 style={{ fontSize: '10px', fontWeight: 600, color: '#999', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                Plantes ({zonePlants.length})
+              </h3>
+              <button
+                onClick={() => setShowPlantCards(v => !v)}
+                style={{ fontSize: '9px', color: '#3B8BD4', background: 'none', border: 'none', cursor: 'pointer', padding: '0' }}
+              >
+                {showPlantCards ? 'Masquer' : 'Fiches détaillées'}
+              </button>
             </div>
-          </Section>
+            {showPlantCards ? (
+              zonePlants.map(p => (
+                <div key={p.id} onClick={() => onItemSelect(p.id, 'plant')} style={{ cursor: 'pointer' }}>
+                  <PlantCard plant={p} />
+                </div>
+              ))
+            ) : (
+              <ul style={{ listStyle: 'none', padding: 0 }}>
+                {zonePlants.map((p, i) => (
+                  <li
+                    key={i}
+                    onClick={() => onItemSelect(p.id, 'plant')}
+                    style={{ marginBottom: '2px', cursor: 'pointer', padding: '1px 4px', borderRadius: '3px' }}
+                    title="Voir la fiche"
+                  >
+                    <span style={{ color: '#bbb', marginRight: '5px' }}>·</span>
+                    <span style={{ color: '#3B8BD4' }}>{p.name}{p.variety ? ` (${p.variety})` : ''}</span>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </section>
         )}
 
-        {/* Plantes / Cultures */}
+        {/* Plantes textuelles (données JSON zones sans fiche) */}
         {zone.plants && zone.plants.length > 0 && (
-          <Section title="Plantes / Cultures" accent="#3aaa5a">
+          <Section title="Notes plantes" accent="#3aaa5a">
             <ul style={{ listStyle: 'none', padding: 0 }}>
               {zone.plants.map((p, i) => (
                 <li key={i} style={{ marginBottom: '3px', lineHeight: 1.45 }}>
@@ -132,6 +213,17 @@ const SidePanel: React.FC<Props> = ({ zone, currentWeek }) => {
                 </li>
               ))}
             </ul>
+          </Section>
+        )}
+
+        {/* Productions */}
+        {zone.outputs && zone.outputs.length > 0 && (
+          <Section title="Productions" accent="#3aaa5a">
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '3px' }}>
+              {zone.outputs.map((o, i) => (
+                <span key={i} style={badge('#ddeeff', '#1155aa')}>{o}</span>
+              ))}
+            </div>
           </Section>
         )}
 
@@ -180,9 +272,7 @@ const SidePanel: React.FC<Props> = ({ zone, currentWeek }) => {
 
 /* Styles utilitaires */
 const base: React.CSSProperties = {
-  width: '240px',
-  minWidth: '210px',
-  borderLeft: '1px solid #ddd',
+  width: '100%',
   background: '#fff',
   display: 'flex',
   flexDirection: 'column',

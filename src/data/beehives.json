@@ -1,0 +1,103 @@
+{
+  "beehives": [
+    {
+      "id": "ruche_1",
+      "name": "Ruche Warré n°1",
+      "type": "warré",
+      "zoneId": "ruches",
+      "yearlyHoneyKg": 35,
+      "yearlyWaxG": 400,
+      "schedule": {
+        "1-8": [
+          { "text": "NE PAS OUVRIR — colonie en grappe hivernale", "priority": "high" },
+          { "text": "Contrôle hors-sol : heft (peser la ruche à la main) — lourde = bien", "priority": "high" },
+          { "text": "Nettoyage plateau sol si débris varroa/mortalité", "priority": "med" },
+          { "text": "Vérifier isolation couvercle + humidité (condensation fatale)", "priority": "med" }
+        ],
+        "9-16": [
+          { "text": "Première visite printanière (T° > 14°C sans vent)", "priority": "high" },
+          { "text": "Vérifier présence reine + couvain", "priority": "high" },
+          { "text": "Contrôle réserves miel (min 5 kg) — nourrir si besoin (sirop 1:1)", "priority": "high" },
+          { "text": "Compter le plancher (chute varroa naturelle)", "priority": "med" },
+          { "text": "Ajouter hausse vide si population en expansion", "priority": "med" },
+          { "text": "Installer nouvelle ruche si essaimage prévu", "priority": "low" }
+        ],
+        "17-24": [
+          { "text": "Surveillance essaimage intensif (mai–juin = pic)", "priority": "high" },
+          { "text": "Réduire entrée si signe d'essaimage (abeilles en grappe devant)", "priority": "high" },
+          { "text": "Capturer essaim si présent (ruche vide préparée)", "priority": "high" },
+          { "text": "Ajout hausse(s) si rayons 80% operculés", "priority": "high" },
+          { "text": "Traitement varroa si comptage > 1 abeille/jour sur plateau", "priority": "med" },
+          { "text": "Ne pas ouvrir pendant miellée (stress = perte de production)", "priority": "med" }
+        ],
+        "25-32": [
+          { "text": "Grande miellée (tilleul, phacélie, lavande)", "priority": "high" },
+          { "text": "Récolte miel juin–juillet si hausse pleine (90% operculée)", "priority": "high" },
+          { "text": "Traitement acide oxalique par sublimation (varroa)", "priority": "high" },
+          { "text": "Vérifier eau à proximité (abeilles besoin eau été)", "priority": "med" }
+        ],
+        "33-40": [
+          { "text": "Récolte miel fin d'été (miellée tournesol, bruyère)", "priority": "high" },
+          { "text": "Retrait hausse après dernière récolte", "priority": "high" },
+          { "text": "Contrôle réserves pour hiver (min 15 kg dans corps)", "priority": "high" },
+          { "text": "Nourrir si réserves < 15 kg (candi ou sirop concentré 2:1)", "priority": "high" },
+          { "text": "Traitement varroa automne (acide oxalique) — OBLIGATOIRE", "priority": "high" }
+        ],
+        "41-48": [
+          { "text": "Dernier nourrissage si besoin (candi 15°C+)", "priority": "high" },
+          { "text": "Réduire entrée (souris qui cherchent abri)", "priority": "high" },
+          { "text": "Installer grille anti-souris sur entrée", "priority": "high" },
+          { "text": "Stabiliser ruche contre vent hivernal", "priority": "med" },
+          { "text": "Bilan : peser, noter, photographier état entrée", "priority": "low" }
+        ],
+        "49-56": [
+          { "text": "Surveillance distante uniquement (activité vole = bon signe)", "priority": "low" },
+          { "text": "Vols de propreté par journée douce (> 10°C)", "priority": "low" },
+          { "text": "Ne jamais ouvrir en hiver", "priority": "high" }
+        ]
+      },
+      "notes": "Ruche Warré autonome — philosophie minimale intervention. Rasonic : non cadres, propolis respectée, essaimage naturel si possible. Positionnée face SSE, protégée du vent nord."
+    },
+    {
+      "id": "ruche_2",
+      "name": "Ruche Warré n°2",
+      "type": "warré",
+      "zoneId": "ruches",
+      "yearlyHoneyKg": 30,
+      "yearlyWaxG": 350,
+      "schedule": {
+        "1-8": [
+          { "text": "Contrôle heft et plateau hivernal", "priority": "high" },
+          { "text": "Ne pas ouvrir", "priority": "high" }
+        ],
+        "9-16": [
+          { "text": "Visite printanière (T° > 14°C)", "priority": "high" },
+          { "text": "Contrôle couvain + reine", "priority": "high" },
+          { "text": "Ajout nacelles si besoin", "priority": "med" }
+        ],
+        "17-24": [
+          { "text": "Surveiller essaimage (décalé 2 sem par rapport à ruche 1)", "priority": "high" },
+          { "text": "Ajout hausses miellée", "priority": "med" }
+        ],
+        "25-32": [
+          { "text": "Grande miellée — ne pas déranger", "priority": "med" },
+          { "text": "Traitement varroa si nécessaire", "priority": "high" }
+        ],
+        "33-40": [
+          { "text": "Récolte miel automne", "priority": "high" },
+          { "text": "Vérifier et constituer réserves hivernales", "priority": "high" },
+          { "text": "Traitement varroa automne", "priority": "high" }
+        ],
+        "41-48": [
+          { "text": "Hivernage — grille souris + stabilisation", "priority": "high" },
+          { "text": "Bilan saison : peser, noter", "priority": "low" }
+        ],
+        "49-56": [
+          { "text": "Surveillance à distance uniquement", "priority": "low" },
+          { "text": "Ne pas ouvrir en hiver", "priority": "high" }
+        ]
+      },
+      "notes": "Colonie secondaire / essaim de l'année ou acheté. Productivité légèrement inférieure à la ruche établie."
+    }
+  ]
+}

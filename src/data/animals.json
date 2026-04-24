@@ -1,0 +1,149 @@
+{
+  "animals": [
+    {
+      "id": "poules",
+      "name": "Poules pondeuses",
+      "species": "Gallus gallus domesticus",
+      "zoneId": "poulailler",
+      "count": 12,
+      "dailyProduction": [
+        { "item": "Œufs", "quantity": 8, "unit": "œufs/jour (moyenne annuelle)" }
+      ],
+      "yearlyProduction": [
+        { "item": "Œufs", "quantity": 2900, "unit": "œufs/an" },
+        { "item": "Fumier", "quantity": 1200, "unit": "kg/an" }
+      ],
+      "inputs": ["Eau fraîche (2–3 L/poule/jour)", "Grain bio", "Restes légumes (pas de solanacées crues)", "Coquilles broyées", "Pâturage rotation"],
+      "tools": ["Mangeoire automatique", "Abreuvoir", "Nichoirs ×6", "Perchoirs", "Portillons ×4 vers parcelles"],
+      "schedule": {
+        "1-56": [
+          { "text": "Eau + alimentation matin", "priority": "high", "frequency": "daily" },
+          { "text": "Collecter les œufs", "priority": "high", "frequency": "daily" },
+          { "text": "Vérifier santé troupeau", "priority": "med", "frequency": "daily" },
+          { "text": "Ouvrir / fermer parcours", "priority": "high", "frequency": "daily" },
+          { "text": "Contrôle prédateurs + clôtures", "priority": "med", "frequency": "weekly" },
+          { "text": "Grattage litière (méthode litière profonde)", "priority": "med", "frequency": "weekly" }
+        ],
+        "1-8": [
+          { "text": "Supplémenter vitamines (jours courts)", "priority": "low", "frequency": "weekly" },
+          { "text": "Vérifier si production maintenue avec éclairage", "priority": "low", "frequency": "weekly" }
+        ],
+        "9-16": [
+          { "text": "Reprise ponte → noter évolution", "priority": "med", "frequency": "weekly" },
+          { "text": "Dé-parasitage (si besoin) + bain de sable renouvelé", "priority": "med", "frequency": "monthly" }
+        ],
+        "17-24": [
+          { "text": "Ouvrir sur parcelle A (si après labour)", "priority": "high", "frequency": "seasonal" },
+          { "text": "Supplémenter calcium (ponte maximale)", "priority": "med", "frequency": "weekly" }
+        ],
+        "25-32": [
+          { "text": "Rotation vers jachère (6 sem)", "priority": "high", "frequency": "seasonal" },
+          { "text": "Vérifier eau bien fraîche (chaleur)", "priority": "high", "frequency": "daily" }
+        ],
+        "33-40": [
+          { "text": "Ouvrir sur verger (après cueillette pommes en cours)", "priority": "med", "frequency": "seasonal" }
+        ],
+        "41-48": [
+          { "text": "Ouvrir sur parcelle B après récoltes (nettoyage biologique)", "priority": "high", "frequency": "seasonal" },
+          { "text": "Entretien litière hivernale (ajout paille)", "priority": "med", "frequency": "weekly" },
+          { "text": "Vermifuge automne", "priority": "med", "frequency": "seasonal" }
+        ],
+        "49-56": [
+          { "text": "Poulaillerchaud — vérifier isolation", "priority": "med", "frequency": "weekly" },
+          { "text": "Ajout céréales (maïs) pour chaleur corporelle", "priority": "low", "frequency": "daily" }
+        ]
+      },
+      "notes": "Races rustiques : Marans (belles œufs bruns), Sussex (ponte régulière), Gauloise (autonomie). Rotation sur 4 parcelles + jachère = fertilisation naturelle complète."
+    },
+    {
+      "id": "vaches",
+      "name": "Vaches laitières",
+      "species": "Bos taurus",
+      "zoneId": "paturage",
+      "count": 2,
+      "dailyProduction": [
+        { "item": "Lait", "quantity": 7, "unit": "L/vache/jour (moyenne)" }
+      ],
+      "yearlyProduction": [
+        { "item": "Lait", "quantity": 2500, "unit": "L/vache/an" },
+        { "item": "Fumier", "quantity": 4000, "unit": "kg/vache/an" }
+      ],
+      "inputs": ["Pâturage (prairie naturelle)", "Foin hiver (8–10 kg/vache/jour)", "Eau (50–80 L/vache/jour)", "Minéraux + sel", "Abri (zone fromagerie/hangar)"],
+      "tools": ["Clôture électrique rotative", "Abreuvoir prairie", "Machine à traire / traite manuelle", "Brouette fumier", "Fourche et racloir"],
+      "schedule": {
+        "1-56": [
+          { "text": "Traite matin (6h–7h)", "priority": "high", "frequency": "daily" },
+          { "text": "Traite soir (17h–18h)", "priority": "high", "frequency": "daily" },
+          { "text": "Eau fraîche vérifiée", "priority": "high", "frequency": "daily" },
+          { "text": "Contrôle santé + pis", "priority": "high", "frequency": "daily" }
+        ],
+        "1-8": [
+          { "text": "Foin quotidien (pâturage impossible)", "priority": "high", "frequency": "daily" },
+          { "text": "Contrôle abri / litière stable", "priority": "med", "frequency": "daily" },
+          { "text": "Vérifier réserves foin (autonomie 2–3 mois)", "priority": "high", "frequency": "weekly" }
+        ],
+        "9-16": [
+          { "text": "Sortie progressive sur prairie (si T° > 5°C)", "priority": "med", "frequency": "weekly" },
+          { "text": "Vaccination annuelle (à planifier avec vétérinaire)", "priority": "high", "frequency": "seasonal" }
+        ],
+        "17-32": [
+          { "text": "Rotation pâturage (changer sous-parcelle chaque 7–10j)", "priority": "high", "frequency": "weekly" },
+          { "text": "Contrôle pieds (parage annuel printemps)", "priority": "med", "frequency": "seasonal" }
+        ],
+        "33-40": [
+          { "text": "Vérifier score état corporel avant hiver", "priority": "med", "frequency": "monthly" }
+        ],
+        "41-56": [
+          { "text": "Fenaison / réception foin (stocker 2 000 kg/vache)", "priority": "high", "frequency": "seasonal" },
+          { "text": "Tarissement 60j avant vêlage (si planifié)", "priority": "med", "frequency": "seasonal" },
+          { "text": "Ramassage fumier pour compost", "priority": "med", "frequency": "weekly" }
+        ]
+      },
+      "notes": "Races adaptées petites fermes : Jersey (riche en matière grasse, idéal beurre/fromage), Bretonne Pie Noir (rustique, autonome), Vosgienne (mixte, résistante). 2 vaches = ~5 000 L lait + ~8 000 kg fumier/an."
+    },
+    {
+      "id": "truites",
+      "name": "Truites fario",
+      "species": "Salmo trutta fario",
+      "zoneId": "aquaponie",
+      "count": 80,
+      "dailyProduction": [
+        { "item": "Nitrates (eau fertilisée)", "quantity": 1, "unit": "cycle (circuit fermé)" }
+      ],
+      "yearlyProduction": [
+        { "item": "Truites consommables", "quantity": 20, "unit": "kg/an" }
+      ],
+      "inputs": ["Granulés truites bio (1–2% poids vif/jour)", "Eau fraîche d'appoint", "Oxygénation continue", "Obscurité partielle (stress lumineux)"],
+      "tools": ["Pompe circuit fermé", "Oxygénateur", "Kit test ammoniaque/nitrites/nitrates/pH", "Épuisette", "Filet ombrage été"],
+      "schedule": {
+        "1-56": [
+          { "text": "Alimentation matin (1% poids vif)", "priority": "high", "frequency": "daily" },
+          { "text": "Alimentation soir (1% poids vif)", "priority": "high", "frequency": "daily" },
+          { "text": "Contrôle pompe + débit", "priority": "high", "frequency": "daily" },
+          { "text": "Test ammoniaque + nitrites", "priority": "high", "frequency": "weekly" },
+          { "text": "Nettoyage filtre mécanique", "priority": "med", "frequency": "weekly" }
+        ],
+        "1-8": [
+          { "text": "Réduire alimentation (T° eau < 10°C = métabolisme lent)", "priority": "med", "frequency": "seasonal" }
+        ],
+        "9-16": [
+          { "text": "Reprendre alimentation normale (T° montante)", "priority": "med", "frequency": "seasonal" },
+          { "text": "Contrôle paramètres eau printaniers", "priority": "high", "frequency": "weekly" }
+        ],
+        "17-32": [
+          { "text": "Ombrage obligatoire (T° eau < 22°C pour truites)", "priority": "high", "frequency": "seasonal" },
+          { "text": "Surveillance oxygène dissous (chaleur = moins d'O₂)", "priority": "high", "frequency": "daily" },
+          { "text": "Alimenter tôt matin (eau plus fraîche)", "priority": "med", "frequency": "daily" }
+        ],
+        "33-40": [
+          { "text": "Retirer ombrage progressivement", "priority": "low", "frequency": "seasonal" },
+          { "text": "Récolte truites de consommation (pêche sélective)", "priority": "med", "frequency": "monthly" }
+        ],
+        "41-48": [
+          { "text": "Nettoyage circuit complet + filtres (automne)", "priority": "high", "frequency": "seasonal" }
+        ]
+      },
+      "notes": "Système aquaponique en circuit fermé. Truites → ammoniaque → bactéries nitrifiantes → nitrates → légumes feuilles → eau purifiée → truites. T° idéale 10–18°C. Capacité : ~80 truites dans 4 bassins de 1 000 L."
+    }
+  ]
+}

@@ -2,22 +2,36 @@
   "zones": [
     {
       "id": "earthship",
-      "name": "Maison Earthship",
+      "name": "Zone 0 — Earthship",
       "type": "habitat",
-      "zoneNumber": 1,
+      "zoneNumber": 0,
       "x": 10, "y": 20, "width": 115, "height": 148,
       "surfaceM2": 180,
-      "description": "Maison passive autonome : murs pneus + terre argileuse (~800 pneus), serre intégrée sud, puits canadien (T° sol 10–12°C), récupération eau pluie 15 000 L, panneaux 8×400 Wc → 3 800 kWh/an, batterie LiFePO₄ 10 kWh. T° 18–21°C stable sans chauffage fossile.",
-      "plants": ["Serre intégrée sud : vigne, figuier, citrus, salades légères hiver"],
+      "description": "Zone 0 — cœur autonome. Pièces : salon (inertie thermique massive), cuisine table d'hôtes, SDB, 2 chambres, toilettes sèches compostantes, garde-manger enterré T° 10–15°C. Serre sud intégrée 12m² : vigne, figuier, kumquat, bergamote, bananier nain Dwarf Cavendish, laitues hiver. Construction : ~800 pneus compactés + enduit chaux-chanvre. T° 18–21°C stable sans chauffage fossile.",
+      "plants": [],
       "animals": [],
       "inputs": ["Eau de pluie", "Énergie solaire", "Air tempéré puits canadien", "Récoltes toutes zones", "Lait · œufs · poissons · aromatiques"],
       "outputs": ["Repas table d'hôtes", "Bocaux conserves", "Lactofermentations", "Chaleur stockée"],
-      "tools": ["Filtre eau 3 étapes", "Batterie LiFePO₄ + onduleur 3 kW", "Thermomètre serre", "Pompe eau pluie"],
+      "tools": [
+        "Puits canadien géothermique 40m (T° sol 10–12°C)",
+        "Panneaux solaires 8×400 Wc → ~3 800 kWh/an",
+        "Batterie LiFePO₄ 10 kWh + onduleur 3 kW",
+        "Chauffe-eau solaire thermique 200L",
+        "Récupération eau de pluie 15 000L (filtre 3 étapes)",
+        "Toilettes sèches compostantes",
+        "Serre intégrée sud 12m² (tropicaux + salades hiver)",
+        "Cave/frigo naturel enterré T° 5–10°C",
+        "Double vitrage argon (isolation R ≥ 40)",
+        "Murs pneus-terre 60cm (inertie thermique)"
+      ],
       "tasks": {
         "1-8": [{"text": "Contrôler filtration eau", "priority": "high"}, {"text": "Vérifier batteries / onduleur", "priority": "med"}],
         "9-16": [{"text": "Ouvrir serre soleil matin", "priority": "med"}],
-        "17-40": [{"text": "Ventilation naturelle puits canadien", "priority": "med"}],
-        "41-56": [{"text": "Préparer stockage hivernal", "priority": "high"}]
+        "17-24": [{"text": "Ventilation naturelle puits canadien", "priority": "med"}],
+        "25-32": [{"text": "Ventilation naturelle puits canadien", "priority": "med"}],
+        "33-40": [{"text": "Ventilation naturelle puits canadien", "priority": "low"}],
+        "41-48": [{"text": "Préparer stockage hivernal", "priority": "high"}],
+        "49-56": [{"text": "Vérifier isolation serre sud (protéger tropicaux < 10°C)", "priority": "med"}]
       }
     },
     {
@@ -28,14 +42,7 @@
       "x": 133, "y": 20, "width": 82, "height": 68,
       "surfaceM2": 30,
       "description": "Tables hautes, armoire à graines, zone bouturage et repiquage. Semis précoces de février à mai.",
-      "plants": [
-        "Tomates (sem. 8–11) : Noire de Crimée, Ananas, Cœur de Bœuf, Green Zebra, Roma",
-        "Aubergines : Violette longue, Listada de Gandia (sem. 9–10)",
-        "Poivrons : Corne de Taureau, paprika hongrois (sem. 9–10)",
-        "Choux précoces (sem. 8–10)",
-        "Basilic Genovese, citron, pourpre (sem. 12–14)",
-        "Laitues de printemps (sem. 10–12)"
-      ],
+      "plants": [],
       "animals": [],
       "inputs": ["Graines", "Terreau", "Argile", "Eau fine", "Chaleur solaire"],
       "outputs": ["Plants à repiquer", "Boutures enracinées"],
@@ -56,13 +63,7 @@
       "x": 223, "y": 20, "width": 82, "height": 68,
       "surfaceM2": 20,
       "description": "Séchoir autonome 2×200 Wc PV. Mur chauffant, tiroirs herbes / fruits / champignons, ventilation naturelle. Option fumage léger pour paprika hongrois.",
-      "plants": [
-        "Herbes : thym, romarin, sauge, origan, sarriette, menthe, mélisse, verveine",
-        "Légumes : tomates (sem. 33–38), poivrons → paprika fumé",
-        "Piments → poudre de piment",
-        "Champignons : shiitake, pleurote (sem. 17–40)",
-        "Fruits : pommes, poires, prunes (sem. 41–48)"
-      ],
+      "plants": [],
       "animals": [],
       "inputs": ["Énergie solaire autonome (400 Wc)", "Récoltes fraîches à transformer"],
       "outputs": ["Herbes séchées", "Tomates séchées", "Paprika fumé", "Poudre de piment", "Fruits secs", "Champignons secs", "Infusions"],
@@ -82,14 +83,7 @@
       "x": 313, "y": 20, "width": 82, "height": 68,
       "surfaceM2": 25,
       "description": "Cave enterrée T° 5–10°C stable. Conservation légumes racines, fruits de garde, bocaux, lactofermentations, fromage, beurre.",
-      "plants": [
-        "Pommes de garde (Reinette, Belle de Boskoop)",
-        "Poires tardives",
-        "Pommes de terre",
-        "Carottes en sable",
-        "Betteraves · courges · rutabaga",
-        "Noix · farines · bocaux"
-      ],
+      "plants": [],
       "animals": [],
       "inputs": ["Air frais du sol", "Récoltes de stockage", "Bocaux stérilisés", "Fermentations lacto"],
       "outputs": ["Légumes conservés tout l'hiver", "Lactofermentations", "Fromage / beurre frais"],
@@ -587,28 +581,6 @@
         "9-16": [{"text": "Semer annuelles mellifères (phacélie, cosmos)", "priority": "med"}],
         "17-40": [{"text": "Laisser fleurir librement (ne pas faucher)", "priority": "low"}],
         "41-48": [{"text": "Fauche partielle + grenaison (ressemer)", "priority": "low"}]
-      }
-    },
-    {
-      "id": "champignons_z3",
-      "name": "Champignons (Zone 3)",
-      "type": "champignons",
-      "zoneNumber": 3,
-      "x": 440, "y": 512, "width": 108, "height": 70,
-      "surfaceM2": 100,
-      "description": "Rondins et palissades bois en zones ombragées et humides de la zone extensif. Production complémentaire aux champignons de bordure.",
-      "plants": [
-        "Shiitake (Lentinula edodes) — sur chêne / hêtre",
-        "Pleurote (Pleurotus ostreatus) — sur peuplier / hêtre"
-      ],
-      "animals": [],
-      "inputs": ["Rondins chêne / hêtre (élagages noyers, haies)", "Mycélium"],
-      "outputs": ["Champignons frais (cuisine)", "Champignons séchés (séchoir)"],
-      "tools": ["Perceuse inoculateur", "Cire d'abeille", "Hygromètre"],
-      "tasks": {
-        "17-40": [{"text": "Arroser rondins si période sèche", "priority": "med"}, {"text": "Récolter shiitake / pleurote", "priority": "high"}],
-        "33-40": [{"text": "Sécher excédents champignons", "priority": "high"}],
-        "9-16": [{"text": "Inoculer nouveaux rondins (printemps)", "priority": "med"}]
       }
     },
     {
