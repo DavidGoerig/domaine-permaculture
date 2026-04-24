@@ -1,0 +1,659 @@
+{
+  "zones": [
+    {
+      "id": "earthship",
+      "name": "Maison Earthship",
+      "type": "habitat",
+      "zoneNumber": 1,
+      "x": 10, "y": 20, "width": 115, "height": 148,
+      "surfaceM2": 180,
+      "description": "Maison passive autonome : murs pneus + terre argileuse (~800 pneus), serre intégrée sud, puits canadien (T° sol 10–12°C), récupération eau pluie 15 000 L, panneaux 8×400 Wc → 3 800 kWh/an, batterie LiFePO₄ 10 kWh. T° 18–21°C stable sans chauffage fossile.",
+      "plants": ["Serre intégrée sud : vigne, figuier, citrus, salades légères hiver"],
+      "animals": [],
+      "inputs": ["Eau de pluie", "Énergie solaire", "Air tempéré puits canadien", "Récoltes toutes zones", "Lait · œufs · poissons · aromatiques"],
+      "outputs": ["Repas table d'hôtes", "Bocaux conserves", "Lactofermentations", "Chaleur stockée"],
+      "tools": ["Filtre eau 3 étapes", "Batterie LiFePO₄ + onduleur 3 kW", "Thermomètre serre", "Pompe eau pluie"],
+      "tasks": {
+        "1-8": [{"text": "Contrôler filtration eau", "priority": "high"}, {"text": "Vérifier batteries / onduleur", "priority": "med"}],
+        "9-16": [{"text": "Ouvrir serre soleil matin", "priority": "med"}],
+        "17-40": [{"text": "Ventilation naturelle puits canadien", "priority": "med"}],
+        "41-56": [{"text": "Préparer stockage hivernal", "priority": "high"}]
+      }
+    },
+    {
+      "id": "serre_semis",
+      "name": "Serre semis",
+      "type": "transformation",
+      "zoneNumber": 1,
+      "x": 133, "y": 20, "width": 82, "height": 68,
+      "surfaceM2": 30,
+      "description": "Tables hautes, armoire à graines, zone bouturage et repiquage. Semis précoces de février à mai.",
+      "plants": [
+        "Tomates (sem. 8–11) : Noire de Crimée, Ananas, Cœur de Bœuf, Green Zebra, Roma",
+        "Aubergines : Violette longue, Listada de Gandia (sem. 9–10)",
+        "Poivrons : Corne de Taureau, paprika hongrois (sem. 9–10)",
+        "Choux précoces (sem. 8–10)",
+        "Basilic Genovese, citron, pourpre (sem. 12–14)",
+        "Laitues de printemps (sem. 10–12)"
+      ],
+      "animals": [],
+      "inputs": ["Graines", "Terreau", "Argile", "Eau fine", "Chaleur solaire"],
+      "outputs": ["Plants à repiquer", "Boutures enracinées"],
+      "tools": ["Arrosoir fin", "Plateaux semis", "Étiquettes", "Table lumineuse (optionnel)"],
+      "tasks": {
+        "1-8": [{"text": "Préparer tables + terreau", "priority": "high"}, {"text": "Inventaire graines", "priority": "med"}],
+        "9-16": [{"text": "Semer tomates", "priority": "high"}, {"text": "Semer aubergines / poivrons", "priority": "high"}, {"text": "Bouturer romarin / thym / menthe", "priority": "low"}],
+        "17-24": [{"text": "Repiquer choux", "priority": "high"}, {"text": "Durcir les plants (extérieur jour)", "priority": "med"}],
+        "25-40": [{"text": "Semer salades été (relais)", "priority": "med"}],
+        "41-56": [{"text": "Trier et stocker graines", "priority": "med"}]
+      }
+    },
+    {
+      "id": "sechoir",
+      "name": "Séchoir solaire",
+      "type": "transformation",
+      "zoneNumber": 1,
+      "x": 223, "y": 20, "width": 82, "height": 68,
+      "surfaceM2": 20,
+      "description": "Séchoir autonome 2×200 Wc PV. Mur chauffant, tiroirs herbes / fruits / champignons, ventilation naturelle. Option fumage léger pour paprika hongrois.",
+      "plants": [
+        "Herbes : thym, romarin, sauge, origan, sarriette, menthe, mélisse, verveine",
+        "Légumes : tomates (sem. 33–38), poivrons → paprika fumé",
+        "Piments → poudre de piment",
+        "Champignons : shiitake, pleurote (sem. 17–40)",
+        "Fruits : pommes, poires, prunes (sem. 41–48)"
+      ],
+      "animals": [],
+      "inputs": ["Énergie solaire autonome (400 Wc)", "Récoltes fraîches à transformer"],
+      "outputs": ["Herbes séchées", "Tomates séchées", "Paprika fumé", "Poudre de piment", "Fruits secs", "Champignons secs", "Infusions"],
+      "tools": ["Tiroirs séchage inox", "Claies", "Hygromètre", "Fumoir simple (poivrons)"],
+      "tasks": {
+        "1-8": [{"text": "Vérifier stocks herbes séchées", "priority": "low"}],
+        "25-32": [{"text": "Sécher herbes d'été (thym, romarin)", "priority": "high"}],
+        "33-40": [{"text": "Sécher tomates", "priority": "high"}, {"text": "Faire paprika fumé", "priority": "high"}, {"text": "Sécher champignons", "priority": "med"}],
+        "41-48": [{"text": "Sécher pommes / poires", "priority": "high"}]
+      }
+    },
+    {
+      "id": "cave",
+      "name": "Cave / Frigo naturel",
+      "type": "stockage",
+      "zoneNumber": 1,
+      "x": 313, "y": 20, "width": 82, "height": 68,
+      "surfaceM2": 25,
+      "description": "Cave enterrée T° 5–10°C stable. Conservation légumes racines, fruits de garde, bocaux, lactofermentations, fromage, beurre.",
+      "plants": [
+        "Pommes de garde (Reinette, Belle de Boskoop)",
+        "Poires tardives",
+        "Pommes de terre",
+        "Carottes en sable",
+        "Betteraves · courges · rutabaga",
+        "Noix · farines · bocaux"
+      ],
+      "animals": [],
+      "inputs": ["Air frais du sol", "Récoltes de stockage", "Bocaux stérilisés", "Fermentations lacto"],
+      "outputs": ["Légumes conservés tout l'hiver", "Lactofermentations", "Fromage / beurre frais"],
+      "tools": ["Caisses bois / sable", "Hygromètre cave", "Thermomètre", "Étagères bocaux"],
+      "tasks": {
+        "1-8": [{"text": "Contrôler stocks — trier abîmés", "priority": "high"}, {"text": "Ventiler si humidité excessive", "priority": "med"}],
+        "41-48": [{"text": "Rentrer courges + pommes de terre", "priority": "high"}, {"text": "Carottes en sable", "priority": "high"}, {"text": "Empiler bocaux + étiqueter", "priority": "med"}]
+      }
+    },
+    {
+      "id": "aquaponie",
+      "name": "Aquaponie — 4 bassins",
+      "type": "eau",
+      "zoneNumber": 1,
+      "x": 403, "y": 20, "width": 95, "height": 68,
+      "surfaceM2": 40,
+      "yieldKgPerM2": 3,
+      "description": "Système en circuit fermé : truites → nitrates → légumes feuilles → eau filtrée → truites. Filtration mécanique + biologique. 4 bassins communiquants. Attention chaleur été (ombrage nécessaire). Jamais d'aromatiques ici.",
+      "plants": [
+        "PRINTEMPS & AUTOMNE (idéal) : laitue pommée, batavia, feuille de chêne, romaine, sucrine",
+        "TOUTE SAISON : roquette, épinard, mizuna, moutarde asiatique, pak choï",
+        "HIVERNAGE possible : cresson, jeunes pousses brassicacées (si T° et lumière suffisantes)",
+        "ÉTÉ : gérer ombrage — chaleur limite la croissance"
+      ],
+      "animals": ["Truites fario (Salmo trutta fario)"],
+      "inputs": ["Nourriture truites", "Eau fraîche appoint", "Énergie pompe", "Oxygénateur"],
+      "outputs": ["Truites (consommation)", "Salades fraîches 12 mois", "Légumes feuilles rapides", "Eau fertilisée circuit fermé"],
+      "tools": ["Pompe aquaponie", "Kit test ammoniaque / nitrites / nitrates", "Épuisette récolte truites", "Oxygénateur", "Filet ombrage été"],
+      "tasks": {
+        "1-56": [{"text": "Nourrir truites (2×/jour)", "priority": "high"}, {"text": "Contrôle ammoniaque / nitrites", "priority": "high"}, {"text": "Vérifier pompe + débit", "priority": "high"}],
+        "9-16": [{"text": "Démarrer nouvelles cultures printemps", "priority": "high"}],
+        "25-32": [{"text": "Installer ombrage (T° < 22°C pour truites)", "priority": "high"}],
+        "41-48": [{"text": "Retirer ombrage", "priority": "low"}, {"text": "Nettoyage circuit + filtres", "priority": "med"}]
+      }
+    },
+    {
+      "id": "aromatiques",
+      "name": "Aromatiques — 6 bacs",
+      "type": "maraîchage",
+      "zoneNumber": 1,
+      "x": 506, "y": 20, "width": 100, "height": 68,
+      "surfaceM2": 15,
+      "description": "6 bacs spécialisés par groupe hydrique. Règle absolue : toutes les aromatiques ici, jamais dans les parcelles extérieures.",
+      "plants": [
+        "BAC A — Méditerranéennes sèches : thym commun, thym citron, romarin, sauge officinale, origan grec, sarriette",
+        "BAC B — Fraîches humides : persil plat, persil frisé, ciboulette, coriandre feuille, aneth, cerfeuil",
+        "BAC C — Basilics (dédié) : basilic Genovese, basilic citron, basilic pourpre, basilic thaï (si serre)",
+        "BAC D — Menthes isolées (bac séparé obligatoire) : menthe verte, menthe poivrée, menthe chocolat, menthe marocaine",
+        "BAC E — Gastronomiques : estragon, livèche, hysope, mélisse, verveine citronnelle, bourrache comestible, pimprenelle",
+        "BAC F — Condiments / épices : moutarde, piment fort, fenouil, coriandre graine, carvi, cumin des prés"
+      ],
+      "animals": [],
+      "inputs": ["Eau modulée selon bac", "Soleil / chaleur serre"],
+      "outputs": ["Aromatiques fraîches cuisine toute l'année", "Herbes à sécher (séchoir)"],
+      "tools": ["Arrosoir fin", "Ciseaux inox", "Étiquettes bacs"],
+      "tasks": {
+        "1-8": [{"text": "Taille légère bacs A + B", "priority": "low"}],
+        "9-16": [{"text": "Remettre en végétation", "priority": "med"}, {"text": "Bouturer menthe / thym / romarin", "priority": "med"}],
+        "17-40": [{"text": "Récolter régulièrement (toutes semaines)", "priority": "high"}, {"text": "Sécher excédents au séchoir", "priority": "med"}],
+        "41-56": [{"text": "Rentrer basilics en serre (gel fatal < 10°C)", "priority": "high"}, {"text": "Protéger bacs du gel", "priority": "high"}]
+      }
+    },
+    {
+      "id": "stockage_eau",
+      "name": "Cuves eau de pluie",
+      "type": "eau",
+      "zoneNumber": 1,
+      "x": 614, "y": 20, "width": 100, "height": 68,
+      "surfaceM2": 10,
+      "description": "Récupération depuis toitures, filtration premier flot + 3 étapes, 15 000 L stockés. Distribution vers toutes zones du domaine. Autonomie eau 100%.",
+      "plants": [],
+      "animals": [],
+      "inputs": ["Eau de pluie (toiture 180 m²)"],
+      "outputs": ["Eau potable maison", "Eau serre semis", "Eau bacs aromatiques", "Eau zones 2 et 3"],
+      "tools": ["Filtre premier flot", "Pompe distribution", "Jauge niveau cuve", "Filtre charbon actif"],
+      "tasks": {
+        "1-56": [{"text": "Contrôler niveau cuves", "priority": "med"}, {"text": "Vérifier filtration", "priority": "low"}]
+      }
+    },
+    {
+      "id": "salades_hiver",
+      "name": "Bacs salades hiver",
+      "type": "maraîchage",
+      "zoneNumber": 1,
+      "x": 133, "y": 96, "width": 170, "height": 58,
+      "surfaceM2": 20,
+      "yieldKgPerM2": 2,
+      "description": "Production continue de feuilles en saison froide sous tunnel ou vitrage. Relais de l'aquaponie novembre–mars.",
+      "plants": [
+        "Mâche (semis sem. 37–42)",
+        "Roquette (semis sem. 37–44)",
+        "Épinards d'hiver (semis sem. 38–42)",
+        "Laitue d'hiver résistante (Rouge de Grenoblois, Merveille d'hiver)",
+        "Claytone de Cuba",
+        "Chicorée pain de sucre",
+        "Scarole · frisée",
+        "Cresson alénois",
+        "Pourpier d'hiver"
+      ],
+      "animals": [],
+      "inputs": ["Eau", "Chaleur solaire passive"],
+      "outputs": ["Salade fraîche nov–mars"],
+      "tools": ["Tunnel / châssis vitré", "Arrosoir fin"],
+      "tasks": {
+        "41-48": [{"text": "Préparer bacs (substrat frais)", "priority": "high"}, {"text": "Semer mâche et roquette", "priority": "high"}],
+        "49-56": [{"text": "Récolter salades hiver", "priority": "high"}],
+        "1-8": [{"text": "Récolter et replanter en continu", "priority": "high"}]
+      }
+    },
+    {
+      "id": "cuisine",
+      "name": "Cuisine / Transformation",
+      "type": "transformation",
+      "zoneNumber": 1,
+      "x": 311, "y": 96, "width": 190, "height": 58,
+      "surfaceM2": 30,
+      "description": "Cœur de la table d'hôtes et de l'autonomie alimentaire. Transformation de toutes les récoltes du domaine. Fromagerie légère, bocaux, lactofermentations, confitures.",
+      "plants": [],
+      "animals": [],
+      "inputs": ["Récoltes toutes zones", "Lait frais", "Œufs", "Herbes séchées"],
+      "outputs": ["Repas table d'hôtes", "Bocaux conserves", "Lactofermentations", "Fromages artisanaux", "Confitures · sirops", "Beurre · crème fraîche"],
+      "tools": ["Robot cuisine", "Stérilisateur bocaux", "Yaourtière", "Balance précision", "Mandoline", "Baratte beurre"],
+      "tasks": {
+        "1-8": [{"text": "Menus hiver depuis cave + stocks", "priority": "med"}],
+        "17-32": [{"text": "Cuisine printanière et estivale", "priority": "high"}],
+        "33-40": [{"text": "Faire conserves tomates", "priority": "high"}, {"text": "Lactofermentations légumes", "priority": "high"}, {"text": "Confitures fruits rouges", "priority": "med"}],
+        "41-56": [{"text": "Compotes pommes / poires", "priority": "high"}, {"text": "Fromage frais et beurre", "priority": "med"}]
+      }
+    },
+    {
+      "id": "hangar",
+      "name": "Hangar / Établi",
+      "type": "stockage",
+      "zoneNumber": 1,
+      "x": 614, "y": 96, "width": 100, "height": 68,
+      "surfaceM2": 60,
+      "description": "Stockage centralisé de tous les équipements. 4×400 Wc PV autonome pour recharge outils électriques (1 600 kWh/an).",
+      "plants": [],
+      "animals": [],
+      "inputs": ["Carburant motoculteur", "Énergie solaire (recharge outils)"],
+      "outputs": ["Outils disponibles toutes zones"],
+      "tools": [
+        "Motoculteur / microtracteur → zone 2 (labour parcelles)",
+        "Broyeur végétaux → compost / haies",
+        "Pompe irrigation → zones 1·2·3",
+        "Tronçonneuse → noyers / haies / rondins champignons",
+        "Faucheuse → zone 3 pâturage / mellifères",
+        "Brouettes ×3 → compost / récoltes",
+        "Fourche bêche · grelinette → parcelles A·B·jachère",
+        "Sécateur · taille-haie → verger / haies",
+        "Épuisette · kit test → aquaponie",
+        "Caisses récolte bois → cuisine / cave"
+      ],
+      "tasks": {
+        "1-8": [{"text": "Entretien outils (affûtage)", "priority": "high"}, {"text": "Vérifier motoculteur", "priority": "med"}],
+        "17-24": [{"text": "Sortir pompe irrigation", "priority": "high"}],
+        "41-56": [{"text": "Hiverner machines", "priority": "med"}, {"text": "Inventaire outillage", "priority": "low"}]
+      }
+    },
+    {
+      "id": "haie1",
+      "name": "Haie fruitière Z1 → Z2",
+      "type": "verger",
+      "x": 10, "y": 178, "width": 610, "height": 18,
+      "description": "Haie productive séparant zone 1 et zone 2. Fruits comestibles, abri biodiversité, haie défensive légère.",
+      "plants": [
+        "Mûres · framboises · cassis · groseilles",
+        "Caseille · sureau · églantier (baies)"
+      ],
+      "animals": ["Insectes utiles · oiseaux"],
+      "inputs": ["Aucun intrant"],
+      "outputs": ["Fruits frais été/automne", "Confitures · sirops", "Abri faune utile"],
+      "tools": ["Sécateur", "Taille-haie"],
+      "tasks": {
+        "25-32": [{"text": "Récolter framboises / cassis", "priority": "high"}],
+        "33-40": [{"text": "Récolter mûres", "priority": "high"}],
+        "1-8": [{"text": "Tailler haie si besoin", "priority": "low"}]
+      }
+    },
+    {
+      "id": "champignons_haie",
+      "name": "Champignons — Bordures terrain",
+      "type": "champignons",
+      "x": 628, "y": 178, "width": 86, "height": 18,
+      "description": "Rondins percés et palissades bois disposés en bordure de terrain dans les zones ombragées entre toutes les zones. Shiitake et pleurotes sur bois feuillu.",
+      "plants": [
+        "Shiitake (Lentinula edodes) — sur chêne / hêtre",
+        "Pleurote (Pleurotus ostreatus) — sur peuplier / hêtre"
+      ],
+      "animals": [],
+      "inputs": ["Rondins de chêne / hêtre", "Mycélium (inoculation)", "Humidité zones ombragées"],
+      "outputs": ["Champignons frais (cuisine directe)", "Champignons séchés → séchoir"],
+      "tools": ["Perceuse + mèche rondins 12mm", "Marteau inoculateur", "Cire d'abeille (scellage)", "Hygromètre"],
+      "tasks": {
+        "1-8": [{"text": "Récolter intérieur (conditions contrôlées)", "priority": "high"}],
+        "9-16": [{"text": "Inoculer nouveaux rondins (printemps)", "priority": "med"}],
+        "17-40": [{"text": "Arroser rondins si sec", "priority": "med"}, {"text": "Récolter champignons", "priority": "high"}],
+        "33-40": [{"text": "Sécher excédents champignons", "priority": "high"}]
+      }
+    },
+    {
+      "id": "verger",
+      "name": "Verger (Parcelle 1)",
+      "type": "verger",
+      "zoneNumber": 2,
+      "x": 10, "y": 218, "width": 228, "height": 118,
+      "surfaceM2": 150,
+      "yieldKgPerM2": 2,
+      "description": "Parcelle fixe avec pommiers variétés anciennes. Sous-étage fraises et trèfle blanc. Accueille les poules en fin de saison pour nettoyage via porte du poulailler.",
+      "plants": [
+        "Pommiers : Reinette du Mans, Belle de Boskoop, Calville blanc d'hiver, Canada gris",
+        "Fraises au sol (variétés remontantes)",
+        "Trèfle blanc (engrais vert vivace)",
+        "Consoude en bordure (biomasse + pollinisateurs)"
+      ],
+      "animals": ["Poules (accès fin saison via porte poulailler)"],
+      "inputs": ["Compost poules + vaches", "Eau pluie"],
+      "outputs": ["Pommes 4 variétés (sep–nov)", "Fraises (juin–sept)", "Nettoyage biologique (poules)"],
+      "tools": ["Sécateur", "Taille-haie verger", "Caisses récolte", "Filet anti-grêle"],
+      "tasks": {
+        "1-8": [{"text": "Tailler pommiers (janv–fév)", "priority": "high"}],
+        "9-16": [{"text": "Fleur pommiers : surveiller gel tardif", "priority": "high"}],
+        "25-32": [{"text": "Récolter fraises", "priority": "high"}, {"text": "Éclaircir pommes si surcharge", "priority": "med"}],
+        "41-48": [{"text": "Récolter pommes de garde", "priority": "high"}, {"text": "Ouvrir aux poules après récolte", "priority": "med"}]
+      }
+    },
+    {
+      "id": "vivaces",
+      "name": "Coins vivaces fixes",
+      "type": "verger",
+      "zoneNumber": 2,
+      "x": 250, "y": 218, "width": 130, "height": 46,
+      "surfaceM2": 40,
+      "description": "Bordures et coins non retournés avec légumes vivaces pérennes. Production pluriannuelle sans labour. En haut du poulailler.",
+      "plants": [
+        "Asperges (plantation an 1 → récolte an 3+)",
+        "Rhubarbe",
+        "Artichauts",
+        "Topinambours (isolés — envahissants)",
+        "Oseille",
+        "Chénopode bon-Henri",
+        "Poireau perpétuel",
+        "Oignon rocambole · ail rocambole"
+      ],
+      "animals": [],
+      "inputs": ["Compost annuel en surface"],
+      "outputs": ["Récoltes printanières précoces", "Production pluriannuelle sans labour"],
+      "tools": ["Fourche bêche (plantation initiale)", "Sécateur"],
+      "tasks": {
+        "9-16": [{"text": "Couper asperges (an 3+)", "priority": "high"}, {"text": "Récolter rhubarbe", "priority": "med"}],
+        "41-48": [{"text": "Planter ail et oignon rocambole", "priority": "high"}, {"text": "Pailler vivaces", "priority": "med"}]
+      }
+    },
+    {
+      "id": "poulailler",
+      "name": "Poulailler central",
+      "type": "animaux",
+      "zoneNumber": 2,
+      "x": 250, "y": 270, "width": 130, "height": 130,
+      "surfaceM2": 50,
+      "description": "Poulailler central avec 4 portes ouvrant sur verger, parcelle A, parcelle B et jachère. Rotation contrôlée pour fertilisation naturelle et nettoyage biologique des parcelles.",
+      "plants": [],
+      "animals": ["Poules pondeuses rustiques (Marans, Sussex, Gauloise…)", "Rotation : 1 parcelle à la fois"],
+      "inputs": ["Eau", "Grains", "Restes légumes sélectionnés", "Coquilles broyées", "Compléments minéraux", "Pâturage sur parcelles en rotation"],
+      "outputs": ["Œufs (quotidiens)", "Fumier → compost", "Nettoyage biologique parcelles", "Viande (ponctuelle)"],
+      "tools": ["Nichoirs", "Perchoirs", "Mangeoire automatique", "Abreuvoir", "Portillons ×4 vers parcelles"],
+      "tasks": {
+        "1-56": [{"text": "Eau + alimentation quotidienne", "priority": "high"}, {"text": "Collecter les œufs", "priority": "high"}, {"text": "Ouvrir / fermer parcours", "priority": "high"}, {"text": "Contrôle prédateurs", "priority": "med"}],
+        "41-48": [{"text": "Ouvrir sur parcelles finies (après récoltes)", "priority": "high"}, {"text": "Entretien litière", "priority": "med"}]
+      }
+    },
+    {
+      "id": "parcelle_a",
+      "name": "Parcelle A — Racines",
+      "type": "maraîchage",
+      "zoneNumber": 2,
+      "x": 10, "y": 344, "width": 228, "height": 118,
+      "surfaceM2": 200,
+      "yieldKgPerM2": 6,
+      "description": "Rotation annuelle. Accueille les poules via porte gauche du poulailler. Racines et légumineuses.",
+      "plants": [
+        "RACINES : carotte Jaune du Doubs, carotte Rouge Sang, carotte Blanche de Kuttingen",
+        "Betterave Chioggia, betterave Crapaudine",
+        "Panais de Guernesey, navet Boule d'or, navet violet",
+        "Radis noir, radis Rose de Chine, rutabaga",
+        "Salsifis, scorsonère, céleri-rave",
+        "LÉGUMINEUSES : pois mangetout, pois à écosser, fèves",
+        "Haricots verts, haricots secs coco, haricot Tarbais",
+        "Lentilles (petite surface test)"
+      ],
+      "animals": [],
+      "inputs": ["Compost poules (rotation)", "Eau pluie", "Engrais verts (jachère précédente)"],
+      "outputs": ["Légumes racines automne/hiver (cave)", "Protéines végétales (haricots, pois)"],
+      "tools": ["Grelinette", "Semoir à main", "Binette", "Arrosoir / goutte-à-goutte"],
+      "tasks": {
+        "9-16": [{"text": "Semer carottes + panais (pleine terre)", "priority": "high"}, {"text": "Semer fèves + pois hâtifs", "priority": "high"}],
+        "17-24": [{"text": "Installer paillage (paille / BRF)", "priority": "med"}, {"text": "Semer haricots après gel", "priority": "high"}],
+        "25-32": [{"text": "Récolter petits pois + fèves", "priority": "high"}],
+        "33-40": [{"text": "Récolter haricots secs (à maturité)", "priority": "high"}, {"text": "Récolter premières racines (betteraves, radis)", "priority": "high"}],
+        "41-48": [{"text": "Rentrer carottes en sable (cave)", "priority": "high"}, {"text": "Rentrer céleri-rave + panais", "priority": "high"}, {"text": "Semer engrais verts hiver", "priority": "med"}]
+      }
+    },
+    {
+      "id": "parcelle_b",
+      "name": "Parcelle B — Légumes fruits",
+      "type": "maraîchage",
+      "zoneNumber": 2,
+      "x": 392, "y": 218, "width": 228, "height": 118,
+      "surfaceM2": 200,
+      "yieldKgPerM2": 8,
+      "description": "Solanacées, cucurbitacées, choux, légumes feuilles d'été. Accueille les poules via porte droite du poulailler.",
+      "plants": [
+        "TOMATES : Noire de Crimée, Ananas, Cœur de Bœuf, Green Zebra, Roma (sauce)",
+        "CUCURBITACÉES : courgette verte, courgette jaune, tromboncino, concombre, cornichon, melon (si tunnel)",
+        "SOLANACÉES : aubergine Violette longue, aubergine Listada de Gandia, poivron Corne de Taureau, poivron paprika hongrois",
+        "CHOUX : chou kale, chou cabus, chou rouge, chou de Bruxelles, chou-fleur, brocoli, chou-rave, chou de Milan",
+        "AUTRES : poireau, fenouil bulbe, blette, épinard pleine terre, laitues pleine terre été, céleri branche, cardon, arroche, tétragone, pak choï (hors aquaponie)"
+      ],
+      "animals": [],
+      "inputs": ["Compost poules (rotation)", "Eau", "Plants serre semis (sem. 17–24)", "Tuteurs bambou"],
+      "outputs": ["Tomates (frais + séchoir)", "Aubergines / Poivrons → paprika", "Courgettes / Concombres", "Choux (automne/hiver)", "Poireau / Fenouil / Blette"],
+      "tools": ["Tuteurs bambou", "Ficelle tomates", "Grelinette", "Arrosoir / goutte-à-goutte", "Pince taille tomates"],
+      "tasks": {
+        "9-16": [{"text": "Semer en serre (tomates, aubergines)", "priority": "high"}],
+        "17-24": [{"text": "Planter tomates après dernière gelée", "priority": "high"}, {"text": "Installer tuteurs", "priority": "high"}, {"text": "Semer courgettes / concombres", "priority": "med"}],
+        "25-32": [{"text": "Tailler gourmands tomates", "priority": "high"}, {"text": "Récolter courgettes (tous les 3j)", "priority": "high"}, {"text": "Surveiller mildiou", "priority": "high"}],
+        "33-40": [{"text": "Récolter tomates à plein régime", "priority": "high"}, {"text": "Envoyer au séchoir (Roma)", "priority": "med"}, {"text": "Récolter poivrons → paprika", "priority": "high"}],
+        "41-48": [{"text": "Récolter choux tardifs", "priority": "high"}, {"text": "Ouvrir aux poules après récolte", "priority": "med"}]
+      }
+    },
+    {
+      "id": "compost",
+      "name": "Zone compost",
+      "type": "stockage",
+      "zoneNumber": 2,
+      "x": 250, "y": 412, "width": 130, "height": 46,
+      "surfaceM2": 15,
+      "description": "Compostage du fumier poules + vaches, déchets cuisine, tailles et engrais verts. Principal amendement de toutes les parcelles.",
+      "plants": [],
+      "animals": [],
+      "inputs": ["Fumier poules (litière)", "Fumier vaches", "Déchets cuisine verts", "Tailles haies / engrais verts"],
+      "outputs": ["Compost mûr → toutes parcelles (printemps)"],
+      "tools": ["Fourche compost", "Brouette", "Thermomètre compost"],
+      "tasks": {
+        "1-56": [{"text": "Retourner compost (mensuel)", "priority": "low"}],
+        "17-24": [{"text": "Distribuer compost mûr sur parcelles", "priority": "high"}]
+      }
+    },
+    {
+      "id": "jachere",
+      "name": "Jachère active",
+      "type": "maraîchage",
+      "zoneNumber": 2,
+      "x": 392, "y": 344, "width": 228, "height": 118,
+      "surfaceM2": 150,
+      "description": "Parcelle en repos actif avec engrais verts. Ouverture progressive aux poules pour fertilisation naturelle. Pollinisateurs favorisés.",
+      "plants": [
+        "Phacélie (pollinisateur +++)",
+        "Trèfle blanc / incarnat (fixation azote)",
+        "Moutarde (nématicide naturel)",
+        "Seigle engrais vert (hiver — biomasse)",
+        "Vesce velue (fixation azote + biomasse)",
+        "Sarrasin (décompaction, été)",
+        "Luzerne si besoin (fixation azote longue durée)"
+      ],
+      "animals": ["Poules (rotation — après broyage engrais verts)"],
+      "inputs": ["Semences engrais verts", "Passage poules"],
+      "outputs": ["Azote fixé", "Biomasse broyée", "Sol enrichi et aéré", "Nectar pollinisateurs"],
+      "tools": ["Semoir à la volée", "Broyeur (avant grenaison)", "Grelinette"],
+      "tasks": {
+        "9-16": [{"text": "Semer engrais verts précoces (phacélie)", "priority": "high"}],
+        "33-40": [{"text": "Broyer engrais verts avant grenaison", "priority": "med"}],
+        "41-48": [{"text": "Ouvrir aux poules (6–8 semaines)", "priority": "high"}, {"text": "Semer seigle hivernal après poules", "priority": "med"}]
+      }
+    },
+    {
+      "id": "haie2",
+      "name": "Haie fruitière Z2 → Z3",
+      "type": "verger",
+      "x": 10, "y": 470, "width": 608, "height": 18,
+      "description": "Haie mixte fruitière et défensive séparant zone maraîchère et extensif.",
+      "plants": [
+        "Prunellier (baies · haie défensive)",
+        "Argousier (baies oranges vitaminées)",
+        "Sureau noir (fleurs + baies)",
+        "Groseilles · caseille"
+      ],
+      "animals": ["Insectes pollinisateurs"],
+      "inputs": ["Aucun intrant"],
+      "outputs": ["Baies sauvages automne", "Haie défensive", "Biodiversité"],
+      "tools": ["Sécateur", "Taille-haie"],
+      "tasks": {
+        "41-48": [{"text": "Récolter baies sauvages (prunellier après gel)", "priority": "med"}],
+        "1-8": [{"text": "Tailler haie (si besoin)", "priority": "low"}]
+      }
+    },
+    {
+      "id": "paturage",
+      "name": "Pâturage vaches",
+      "type": "animaux",
+      "zoneNumber": 3,
+      "x": 10, "y": 512, "width": 200, "height": 150,
+      "surfaceM2": 6000,
+      "description": "Pâturage tournant pour 1–2 vaches laitières (Jersey, Bretonne Pie Noir, Vosgienne). Rotation sur sous-parcelles pour préserver la prairie. Foin stocké pour l'hiver.",
+      "plants": ["Prairie naturelle diversifiée (graminées + légumineuses)", "Foin (stockage hivernal)"],
+      "animals": ["Vache laitière : Jersey / Bretonne Pie Noir / Vosgienne"],
+      "inputs": ["Pâture", "Foin hiver", "Eau", "Minéraux", "Abri"],
+      "outputs": ["Lait ~2 500 L/an", "Crème · beurre", "Fumier ~8 000 kg/an", "Entretien prairie"],
+      "tools": ["Clôture électrique", "Abreuvoir prairie", "Machine à traire / traite manuelle", "Brouette fumier"],
+      "tasks": {
+        "1-56": [{"text": "Traite quotidienne", "priority": "high"}, {"text": "Eau + contrôle santé", "priority": "high"}, {"text": "Contrôle clôtures électriques", "priority": "med"}],
+        "17-40": [{"text": "Rotation pâturage (changer sous-parcelle)", "priority": "high"}],
+        "41-56": [{"text": "Constituer / livrer foin hivernal", "priority": "high"}]
+      }
+    },
+    {
+      "id": "fromagerie",
+      "name": "Fromagerie / Laiterie",
+      "type": "transformation",
+      "zoneNumber": 3,
+      "x": 218, "y": 512, "width": 98, "height": 70,
+      "surfaceM2": 20,
+      "description": "Espace transformation du lait frais en beurre, crème, fromage frais, yaourt. Lié à la table d'hôtes.",
+      "plants": [],
+      "animals": [],
+      "inputs": ["Lait frais vaches (traite quotidienne)"],
+      "outputs": ["Beurre", "Crème fraîche", "Fromage frais artisanal", "Yaourt"],
+      "tools": ["Baratte à beurre", "Moules à fromage", "Passoire fine étamine", "Thermomètre lait", "Pot fermentation"],
+      "tasks": {
+        "1-56": [{"text": "Transformer lait du jour", "priority": "high"}, {"text": "Entretien hygiène matériel laiterie", "priority": "med"}]
+      }
+    },
+    {
+      "id": "noyers",
+      "name": "Noyers",
+      "type": "verger",
+      "zoneNumber": 3,
+      "x": 218, "y": 590, "width": 98, "height": 72,
+      "surfaceM2": 2000,
+      "description": "Zone de noyers avec espacement adapté à la juglone (toxique pour de nombreuses plantes). Pas de légumes sensibles sous la couronne. Récolte automne.",
+      "plants": [
+        "Noyers variétés locales (Franquette, Lara, Fernette)",
+        "Pas de sous-couvert végétal sensible (juglone)"
+      ],
+      "animals": [],
+      "inputs": ["Extensif — peu d'intrants"],
+      "outputs": ["Noix (oct–nov)", "Huile de noix pressée à froid", "Bois élagué (rondins champignons)"],
+      "tools": ["Gaulette récolte noix", "Caisses bois", "Presse à huile (optionnel)"],
+      "tasks": {
+        "1-8": [{"text": "Tailler noyers si besoin (hiver)", "priority": "low"}],
+        "41-48": [{"text": "Récolter noix (gaulage)", "priority": "high"}, {"text": "Stocker en cave sèche", "priority": "high"}]
+      }
+    },
+    {
+      "id": "ruches",
+      "name": "Ruches Warré",
+      "type": "animaux",
+      "zoneNumber": 3,
+      "x": 324, "y": 512, "width": 108, "height": 70,
+      "surfaceM2": 10,
+      "description": "2 à 4 ruches Warré positionnées en bordure des mellifères et à proximité des zones fleuries. Pollinisation de toutes les cultures du domaine.",
+      "plants": [],
+      "animals": ["Abeilles domestiques (Apis mellifera)"],
+      "inputs": ["Nectar et pollen des mellifères", "Eau à proximité (abreuvoir)"],
+      "outputs": ["Miel 30–50 kg/ruche/an", "Cire d'abeille", "Pollinisation zones 1·2·3", "Propolis"],
+      "tools": ["Combinaison apicole", "Enfumoir", "Lève-cadres", "Extracteur miel", "Pots miel"],
+      "tasks": {
+        "9-16": [{"text": "Vérifier activité ruches (printemps)", "priority": "high"}, {"text": "Installer nouvelle ruche si besoin", "priority": "med"}],
+        "17-32": [{"text": "Contrôle varroa", "priority": "high"}, {"text": "Surveiller essaimage (mai–juin)", "priority": "high"}],
+        "33-40": [{"text": "Récolter miel de fin d'été", "priority": "high"}],
+        "41-56": [{"text": "Préparer hivernage ruches", "priority": "high"}, {"text": "Nourrir si réserves insuffisantes (sirop)", "priority": "med"}]
+      }
+    },
+    {
+      "id": "melliferes",
+      "name": "Plantes mellifères",
+      "type": "mellifères",
+      "zoneNumber": 3,
+      "x": 324, "y": 590, "width": 108, "height": 72,
+      "surfaceM2": 200,
+      "description": "Bande mellifère continue en symbiose directe avec les ruches. Floraison échelonnée de mars à octobre.",
+      "plants": [
+        "Phacélie (mars–mai · pollinisateur +++)",
+        "Lavande (juin–août)",
+        "Bourrache comestible (mai–sept)",
+        "Cosmos · souci · bleuet (été)",
+        "Sainfoin · mélilot · lotier (prairies fleuries)",
+        "Trèfle blanc / incarnat"
+      ],
+      "animals": ["Abeilles · bourdons · papillons · syrphes"],
+      "inputs": ["Semis annuels pour les annuelles", "Peu d'entretien pour les vivaces"],
+      "outputs": ["Pollinisation toutes zones", "Nectar ruches", "Biodiversité maximale"],
+      "tools": ["Semoir à la volée"],
+      "tasks": {
+        "9-16": [{"text": "Semer annuelles mellifères (phacélie, cosmos)", "priority": "med"}],
+        "17-40": [{"text": "Laisser fleurir librement (ne pas faucher)", "priority": "low"}],
+        "41-48": [{"text": "Fauche partielle + grenaison (ressemer)", "priority": "low"}]
+      }
+    },
+    {
+      "id": "champignons_z3",
+      "name": "Champignons (Zone 3)",
+      "type": "champignons",
+      "zoneNumber": 3,
+      "x": 440, "y": 512, "width": 108, "height": 70,
+      "surfaceM2": 100,
+      "description": "Rondins et palissades bois en zones ombragées et humides de la zone extensif. Production complémentaire aux champignons de bordure.",
+      "plants": [
+        "Shiitake (Lentinula edodes) — sur chêne / hêtre",
+        "Pleurote (Pleurotus ostreatus) — sur peuplier / hêtre"
+      ],
+      "animals": [],
+      "inputs": ["Rondins chêne / hêtre (élagages noyers, haies)", "Mycélium"],
+      "outputs": ["Champignons frais (cuisine)", "Champignons séchés (séchoir)"],
+      "tools": ["Perceuse inoculateur", "Cire d'abeille", "Hygromètre"],
+      "tasks": {
+        "17-40": [{"text": "Arroser rondins si période sèche", "priority": "med"}, {"text": "Récolter shiitake / pleurote", "priority": "high"}],
+        "33-40": [{"text": "Sécher excédents champignons", "priority": "high"}],
+        "9-16": [{"text": "Inoculer nouveaux rondins (printemps)", "priority": "med"}]
+      }
+    },
+    {
+      "id": "sauvage",
+      "name": "Sauvage comestible",
+      "type": "verger",
+      "zoneNumber": 3,
+      "x": 440, "y": 590, "width": 108, "height": 72,
+      "surfaceM2": 300,
+      "description": "Zone semi-naturelle avec cueillette sauvage saisonnière valorisée en cuisine. Biodiversité maximale, aucun intrant.",
+      "plants": [
+        "Ortie (feuilles jeunes : soupe, pesto, infusion)",
+        "Pissenlit (feuilles + racines + fleurs)",
+        "Plantain (feuilles médicinales + comestibles)",
+        "Ail des ours (mars–mai — ail sauvage)",
+        "Berce commune (tiges jeunes cru / cuit)",
+        "Oxalis (feuilles acides comme oseille)",
+        "Alliaire (feuilles ail + moutarde)",
+        "Reine-des-prés si zone humide"
+      ],
+      "animals": [],
+      "inputs": ["Aucun intrant — nature"],
+      "outputs": ["Cueillette sauvage saisonnière", "Biodiversité maximale"],
+      "tools": ["Panier cueillette", "Guide plantes sauvages comestibles"],
+      "tasks": {
+        "9-24": [{"text": "Récolter ail des ours (mars–mai)", "priority": "high"}, {"text": "Cueillir orties jeunes (avant floraison)", "priority": "med"}]
+      }
+    },
+    {
+      "id": "haie_bas",
+      "name": "Haie défensive sud",
+      "type": "verger",
+      "x": 10, "y": 676, "width": 700, "height": 16,
+      "description": "Haie défensive en bordure sud du domaine. Prunellier, épine noire, ronces, argousier. Protection et biodiversité.",
+      "plants": [
+        "Prunellier · épine noire",
+        "Ronces contrôlées · argousier"
+      ],
+      "animals": [],
+      "inputs": ["Aucun"],
+      "outputs": ["Protection périmètre", "Biodiversité"],
+      "tools": ["Taille-haie (1×/an max)"],
+      "tasks": {
+        "1-8": [{"text": "Inspecter haie défensive", "priority": "low"}]
+      }
+    }
+  ]
+}

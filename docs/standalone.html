@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Domaine Permaculture — Earthship + Systèmes autonomes</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:system-ui,-apple-system,sans-serif;background:#f5f3ee;color:#222}
+#app{display:flex;flex-direction:column;height:100vh}
+#hdr{padding:10px 16px;background:#fff;border-bottom:1px solid #ddd;display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+#hdr h1{font-size:15px;font-weight:600;flex:1}
+#wc{display:flex;align-items:center;gap:8px;font-size:12px;color:#666}
+#wsl{width:120px}
+#wlb{font-weight:600;color:#222;min-width:80px}
+#main{display:flex;flex:1;overflow:hidden}
+#map{flex:1;overflow:auto;background:#f0ece4;padding:6px}
+#sp{width:230px;min-width:200px;border-left:1px solid #ddd;background:#fff;display:flex;flex-direction:column;overflow:hidden}
+#ph{padding:10px 13px;border-bottom:1px solid #eee}
+#pt{font-size:13px;font-weight:600;color:#222}
+#pm{font-size:11px;color:#888;margin-top:2px}
+#pb{padding:10px 13px;flex:1;overflow-y:auto;font-size:11px;line-height:1.55;color:#333}
+.ps{margin-bottom:12px}
+.ps h3{font-size:10px;font-weight:600;color:#999;text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px}
+.ps ul{list-style:none;padding:0}
+.ps li::before{content:"·";margin-right:4px;color:#bbb}
+.ti{font-size:11px;padding:3px 7px;border-radius:4px;margin-bottom:3px;background:#f5f3ee}
+.ti.h{border-left:2px solid #E8593C}
+.ti.m{border-left:2px solid #EF9F27}
+.ti.l{border-left:2px solid #3B8BD4}
+.ob{display:inline-block;font-size:10px;padding:2px 7px;border-radius:3px;margin:2px 2px 0 0;background:#ddeeff;color:#1155aa}
+.eb{display:inline-block;font-size:10px;padding:2px 7px;border-radius:3px;margin:2px 2px 0 0;background:#fff0d0;color:#aa7700}
+#flt{padding:8px 12px;border-top:1px solid #eee}
+#flt .ftitle{font-size:10px;font-weight:600;color:#888;margin-bottom:5px}
+#flt label{font-size:11px;color:#555;display:flex;align-items:center;gap:5px;cursor:pointer;margin-bottom:3px}
+.zg{cursor:pointer}
+.zg:hover rect{opacity:.75}
+.zr{transition:opacity .15s;stroke-width:1}
+.zr.sel{stroke-width:2.5!important}
+.zl{pointer-events:none;font-family:system-ui,-apple-system,sans-serif}
+.fl{fill:none;stroke-width:1.5;opacity:.85;transition:opacity .3s}
+.fl.hid{opacity:0!important;pointer-events:none}
+.hint{font-size:12px;color:#aaa;text-align:center;padding:24px 12px;line-height:1.6}
+</style>
+</head>
+<body>
+<div id="app">
+<div id="hdr">
+  <h1>🌿 Domaine Permaculture — Earthship autonome</h1>
+  <div id="wc">
+    <span>Semaine</span>
+    <input type="range" id="wsl" min="1" max="56" value="22">
+    <span id="wlb">22</span>
+    <span style="color:#aaa;font-size:11px;" id="season_label">— Plantation / mise en place</span>
+  </div>
+</div>
+<div id="main">
+<div id="map">
+<svg id="fsv" width="100%" viewBox="0 0 840 1040" style="display:block;min-width:600px">
+<defs>
+<marker id="aW" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse"><path d="M2 1L8 5L2 9" fill="none" stroke="#3B8BD4" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></marker>
+<marker id="aF" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse"><path d="M2 1L8 5L2 9" fill="none" stroke="#639922" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></marker>
+<marker id="aH" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse"><path d="M2 1L8 5L2 9" fill="none" stroke="#E8593C" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></marker>
+<marker id="aA" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse"><path d="M2 1L8 5L2 9" fill="none" stroke="#EF9F27" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></marker>
+<marker id="aE" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse"><path d="M2 1L8 5L2 9" fill="none" stroke="#f5c842" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></marker>
+</defs>
+
+<!-- ═══════════════════════════════════════════════════════
+     MAISON EARTHSHIP — ARCHITECTURE & SYSTÈMES
+═════════════════════════════════════════════════════════ -->
+<text x="10" y="13" font-size="9" font-family="system-ui" fill="#999" font-weight="600">MAISON EARTHSHIP — Conception passive autonome + panneaux solaires rendement</text>
+
+<!-- Conteneur principal Earthship -->
+<rect x="10" y="18" width="820" height="172" rx="7" fill="#ede8de" stroke="#a89070" stroke-width="1"/>
+
+<!-- 1. Murs pneus + inertie -->
+<g class="zg" onclick="sel('murs')">
+<rect class="zr" id="r_murs" x="16" y="24" width="138" height="160" rx="5" fill="#c8b898" stroke="#9a7a5a"/>
+<text class="zl" x="85" y="62" text-anchor="middle" font-size="9" font-weight="600" fill="#3d2a1a">Murs pneus</text>
+<text class="zl" x="85" y="74" text-anchor="middle" font-size="7.5" fill="#6a5040">~800 pneus · terre</text>
+<text class="zl" x="85" y="86" text-anchor="middle" font-size="7" fill="#6a5040">adobe · bouteilles verre</text>
+<text class="zl" x="85" y="104" text-anchor="middle" font-size="8" font-weight="600" fill="#8a6030">T° 18–21°C stable</text>
+<text class="zl" x="85" y="116" text-anchor="middle" font-size="8" font-weight="600" fill="#8a6030">sans chauffage fossile</text>
+<text class="zl" x="85" y="132" text-anchor="middle" font-size="7" fill="#999">enduit argile/chaux</text>
+<text class="zl" x="85" y="166" text-anchor="middle" font-size="7.5" fill="#4a8a3a">↗ confort passif</text>
+</g>
+
+<!-- 2. Serre intégrée sud -->
+<g class="zg" onclick="sel('serre_int')">
+<rect class="zr" id="r_serre_int" x="162" y="24" width="124" height="160" rx="5" fill="#d0eecc" stroke="#5aaa5a"/>
+<text class="zl" x="224" y="60" text-anchor="middle" font-size="9" font-weight="600" fill="#1a4a1a">Serre intégrée</text>
+<text class="zl" x="224" y="72" text-anchor="middle" font-size="7.5" fill="#3a6a3a">façade sud vitrée</text>
+<text class="zl" x="224" y="86" text-anchor="middle" font-size="7" fill="#555">vigne · figuier · citrus</text>
+<text class="zl" x="224" y="98" text-anchor="middle" font-size="7" fill="#555">salades hiver légères</text>
+<text class="zl" x="224" y="112" text-anchor="middle" font-size="8" font-weight="600" fill="#3a8a3a">+4°C min garanti</text>
+<text class="zl" x="224" y="124" text-anchor="middle" font-size="7.5" fill="#3a8a3a">tampon thermique</text>
+<text class="zl" x="224" y="136" text-anchor="middle" font-size="7" fill="#555">entrée air puits canadien</text>
+<text class="zl" x="224" y="166" text-anchor="middle" font-size="7.5" fill="#4a8a3a">↗ verdure · chaleur</text>
+</g>
+
+<!-- 3. Eau pluie -->
+<g class="zg" onclick="sel('eau_maison')">
+<rect class="zr" id="r_eau_maison" x="294" y="24" width="110" height="74" rx="5" fill="#b8d8f0" stroke="#4a88b8"/>
+<text class="zl" x="349" y="48" text-anchor="middle" font-size="9" font-weight="600" fill="#1a3a6a">Récup. eau pluie</text>
+<text class="zl" x="349" y="60" text-anchor="middle" font-size="7" fill="#3a5a8a">toiture → filtre 3 étapes</text>
+<text class="zl" x="349" y="72" text-anchor="middle" font-size="8" font-weight="600" fill="#2a5a9a">15 000 L stockés</text>
+<text class="zl" x="349" y="86" text-anchor="middle" font-size="7" fill="#3a5a8a">autonomie eau 100%</text>
+</g>
+
+<!-- 4. Eaux grises -->
+<g class="zg" onclick="sel('eaux_grises')">
+<rect class="zr" id="r_eaux_grises" x="294" y="106" width="110" height="68" rx="5" fill="#c8dce8" stroke="#6a9ab8"/>
+<text class="zl" x="349" y="130" text-anchor="middle" font-size="9" font-weight="600" fill="#2a4a5a">Eaux grises</text>
+<text class="zl" x="349" y="142" text-anchor="middle" font-size="7" fill="#4a6a7a">lit filtrant roseaux</text>
+<text class="zl" x="349" y="154" text-anchor="middle" font-size="7.5" fill="#2a6a8a">→ toilettes · jardin</text>
+<text class="zl" x="349" y="166" text-anchor="middle" font-size="7" fill="#4a6a7a">toilettes compost</text>
+</g>
+
+<!-- 5. Puits canadien -->
+<g class="zg" onclick="sel('puits')">
+<rect class="zr" id="r_puits" x="412" y="24" width="124" height="74" rx="5" fill="#d0c8b8" stroke="#9a8a7a"/>
+<text class="zl" x="474" y="48" text-anchor="middle" font-size="9" font-weight="600" fill="#3a2a1a">Puits canadien</text>
+<text class="zl" x="474" y="60" text-anchor="middle" font-size="7" fill="#5a4a3a">tuyau 30–50m · 1,8m prof.</text>
+<text class="zl" x="474" y="72" text-anchor="middle" font-size="8" font-weight="600" fill="#7a6a4a">+10°C hiver / –5°C été</text>
+<text class="zl" x="474" y="86" text-anchor="middle" font-size="7" fill="#5a4a3a">T° sol 10–12°C constant</text>
+</g>
+
+<!-- 6. Cave enterrée -->
+<g class="zg" onclick="sel('cave')">
+<rect class="zr" id="r_cave" x="412" y="106" width="124" height="68" rx="5" fill="#b0c4d8" stroke="#6a90b0"/>
+<text class="zl" x="474" y="130" text-anchor="middle" font-size="9" font-weight="600" fill="#1a3050">Cave / Frigo naturel</text>
+<text class="zl" x="474" y="142" text-anchor="middle" font-size="7" fill="#3a5070">enterrée · T° 5–10°C stable</text>
+<text class="zl" x="474" y="154" text-anchor="middle" font-size="8" font-weight="600" fill="#2a4a80">1200 kg stockage</text>
+<text class="zl" x="474" y="166" text-anchor="middle" font-size="7" fill="#3a5070">racines · bocaux · fromage</text>
+</g>
+
+<!-- 7. Panneaux PV Maison -->
+<g class="zg" onclick="sel('pv_maison')">
+<rect class="zr" id="r_pv_maison" x="544" y="24" width="154" height="100" rx="5" fill="#1a3a6a" stroke="#f5c842" stroke-width="1.5"/>
+<line x1="578" y1="24" x2="578" y2="124" stroke="#f5c842" stroke-width="0.35" opacity="0.45"/>
+<line x1="612" y1="24" x2="612" y2="124" stroke="#f5c842" stroke-width="0.35" opacity="0.45"/>
+<line x1="646" y1="24" x2="646" y2="124" stroke="#f5c842" stroke-width="0.35" opacity="0.45"/>
+<line x1="680" y1="24" x2="680" y2="124" stroke="#f5c842" stroke-width="0.35" opacity="0.45"/>
+<line x1="544" y1="56" x2="698" y2="56" stroke="#f5c842" stroke-width="0.35" opacity="0.45"/>
+<line x1="544" y1="88" x2="698" y2="88" stroke="#f5c842" stroke-width="0.35" opacity="0.45"/>
+<text class="zl" x="621" y="44" text-anchor="middle" font-size="9" font-weight="600" fill="#f5c842">Panneaux solaires</text>
+<text class="zl" x="621" y="58" text-anchor="middle" font-size="8.5" fill="#aac8f0" font-weight="600">8 × 400 Wc</text>
+<text class="zl" x="621" y="71" text-anchor="middle" font-size="7.5" fill="#f5c842" font-weight="600">→ 3 800 kWh/an</text>
+<text class="zl" x="621" y="84" text-anchor="middle" font-size="7" fill="#aac8f0">(Alsace ~1200h éq. plein soleil)</text>
+<text class="zl" x="621" y="97" text-anchor="middle" font-size="7" fill="#f5c842">→ maison · pompes · aquaponie</text>
+<text class="zl" x="621" y="109" text-anchor="middle" font-size="7" fill="#aac8f0">+ Batterie LiFePO₄ 10 kWh</text>
+</g>
+
+<!-- 8. Batterie hybride -->
+<g class="zg" onclick="sel('batterie')">
+<rect class="zr" id="r_batterie" x="544" y="132" width="154" height="52" rx="5" fill="#2a2a3a" stroke="#f5c842"/>
+<text class="zl" x="621" y="154" text-anchor="middle" font-size="9" font-weight="600" fill="#f5c842">Batterie + Onduleur</text>
+<text class="zl" x="621" y="166" text-anchor="middle" font-size="7.5" fill="#aac8f0">LiFePO₄ 10 kWh · Onduleur 3 kW</text>
+<text class="zl" x="621" y="178" text-anchor="middle" font-size="7" fill="#f5c842">autonomie 2–3 jours sans soleil</text>
+</g>
+
+<!-- 9. Cuisine / Transformation -->
+<g class="zg" onclick="sel('cuisine')">
+<rect class="zr" id="r_cuisine" x="706" y="24" width="114" height="160" rx="5" fill="#e8d5b8" stroke="#b09060"/>
+<text class="zl" x="763" y="66" text-anchor="middle" font-size="9" font-weight="600" fill="#4a2a08">Cuisine</text>
+<text class="zl" x="763" y="78" text-anchor="middle" font-size="7.5" fill="#7

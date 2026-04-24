@@ -1,0 +1,662 @@
+
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+#app{display:flex;flex-direction:column;min-height:700px;}
+#header{padding:9px 14px;border-bottom:0.5px solid var(--color-border-tertiary);display:flex;align-items:center;gap:12px;flex-wrap:wrap;}
+#header h1{font-size:14px;font-weight:500;color:var(--color-text-primary);flex:1;}
+#week-ctrl{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--color-text-secondary);}
+#week-slider{width:110px;}
+#week-label{font-weight:500;color:var(--color-text-primary);min-width:74px;}
+#main{display:flex;flex:1;overflow:hidden;}
+#map-area{flex:1;overflow:auto;background:var(--color-background-secondary);padding:4px;}
+#side-panel{width:215px;min-width:190px;border-left:0.5px solid var(--color-border-tertiary);background:var(--color-background-primary);display:flex;flex-direction:column;overflow:hidden;}
+#panel-header{padding:10px 12px;border-bottom:0.5px solid var(--color-border-tertiary);}
+#panel-title{font-size:13px;font-weight:500;color:var(--color-text-primary);}
+#panel-meta{font-size:11px;color:var(--color-text-secondary);margin-top:2px;}
+#panel-body{padding:10px 12px;flex:1;overflow-y:auto;}
+.ps{margin-bottom:11px;}
+.ps h3{font-size:10px;font-weight:500;color:var(--color-text-secondary);text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px;}
+.ps p,.ps li{font-size:11px;color:var(--color-text-primary);line-height:1.5;}
+.ps ul{list-style:none;padding:0;}
+.ps li::before{content:"·";margin-right:4px;color:var(--color-text-tertiary);}
+.ti{font-size:11px;padding:3px 6px;border-radius:4px;margin-bottom:2px;background:var(--color-background-secondary);color:var(--color-text-primary);}
+.ti.high{border-left:2px solid #E8593C;}
+.ti.med{border-left:2px solid #EF9F27;}
+.ti.low{border-left:2px solid #3B8BD4;}
+.out-badge{display:inline-block;font-size:10px;padding:2px 6px;border-radius:3px;margin:2px 2px 0 0;background:var(--color-background-info);color:var(--color-text-info);}
+#filters{padding:7px 10px;border-top:0.5px solid var(--color-border-tertiary);}
+#filters label{font-size:11px;color:var(--color-text-secondary);display:flex;align-items:center;gap:4px;cursor:pointer;margin-bottom:2px;}
+#filters input{accent-color:var(--color-text-info);}
+.zg{cursor:pointer;}
+.zg rect,.zg polygon{transition:opacity .15s;}
+.zg:hover rect,.zg:hover polygon{opacity:.75;}
+.zr.sel{stroke-width:2.5!important;}
+.zl{pointer-events:none;font-family:var(--font-sans);}
+.fl{fill:none;stroke-width:1.5;opacity:.75;transition:opacity .3s;}
+.fl.hid{opacity:0!important;pointer-events:none;}
+.hint{font-size:11px;color:var(--color-text-tertiary);text-align:center;padding:20px 10px;line-height:1.6;}
+</style>
+<div id="app">
+<div id="header">
+  <h1>Domaine Permaculture</h1>
+  <div id="week-ctrl">
+    <span>Sem.</span>
+    <input type="range" id="wsl" min="1" max="56" value="22">
+    <span id="wlb">Semaine 22</span>
+  </div>
+</div>
+<div id="main">
+<div id="map-area">
+<svg id="fsv" width="100%" viewBox="0 0 760 860" style="display:block;min-width:520px;">
+<defs>
+  <marker id="aW" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse"><path d="M2 1L8 5L2 9" fill="none" stroke="#3B8BD4" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></marker>
+  <marker id="aF" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse"><path d="M2 1L8 5L2 9" fill="none" stroke="#639922" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></marker>
+  <marker id="aH" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse"><path d="M2 1L8 5L2 9" fill="none" stroke="#E8593C" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></marker>
+  <marker id="aA" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse"><path d="M2 1L8 5L2 9" fill="none" stroke="#EF9F27" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></marker>
+  <marker id="aT" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse"><path d="M2 1L8 5L2 9" fill="none" stroke="#7a5a9a" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></marker>
+</defs>
+
+<!-- ══════════════════════════════════════════════════════
+     ZONE 1 — EARTHSHIP
+════════════════════════════════════════════════════════ -->
+<text x="10" y="14" font-size="8.5" font-family="var(--font-sans)" fill="var(--color-text-tertiary)" font-weight="500">ZONE 1 — Earthship + systèmes intensifs</text>
+
+<!-- Earthship -->
+<g class="zg" onclick="sel('earthship')">
+  <rect class="zr" id="r_earthship" x="10" y="20" width="115" height="148" rx="5" fill="#d4c5a9" stroke="#a89070" stroke-width="1"/>
+  <text class="zl" x="67" y="72" text-anchor="middle" font-size="9.5" font-weight="500" fill="var(--color-text-primary)">Maison</text>
+  <text class="zl" x="67" y="84" text-anchor="middle" font-size="9.5" font-weight="500" fill="var(--color-text-primary)">Earthship</text>
+  <text class="zl" x="67" y="96" text-anchor="middle" font-size="8" fill="var(--color-text-secondary)">180 m²</text>
+  <text class="zl" x="67" y="108" text-anchor="middle" font-size="7.5" fill="#639922">↗ repas · bocaux</text>
+  <text class="zl" x="67" y="119" text-anchor="middle" font-size="7.5" fill="#639922">lactoferment.</text>
+</g>
+<!-- Serre semis -->
+<g class="zg" onclick="sel('serre_semis')">
+  <rect class="zr" id="r_serre_semis" x="133" y="20" width="82" height="68" rx="5" fill="#b8dfc8" stroke="#6aaa8a" stroke-width="1"/>
+  <text class="zl" x="174" y="50" text-anchor="middle" font-size="9.5" font-weight="500" fill="var(--color-text-primary)">Serre semis</text>
+  <text class="zl" x="174" y="62" text-anchor="middle" font-size="7.5" fill="#639922">↗ plants · boutures</text>
+</g>
+<!-- Séchoir -->
+<g class="zg" onclick="sel('sechoir')">
+  <rect class="zr" id="r_sechoir" x="223" y="20" width="82" height="68" rx="5" fill="#f5c98a" stroke="#cc8f3a" stroke-width="1"/>
+  <text class="zl" x="264" y="46" text-anchor="middle" font-size="9.5" font-weight="500" fill="var(--color-text-primary)">Séchoir</text>
+  <text class="zl" x="264" y="58" text-anchor="middle" font-size="8" fill="var(--color-text-secondary)">solaire</text>
+  <text class="zl" x="264" y="70" text-anchor="middle" font-size="7.5" fill="#cc8f3a">↗ herbes · paprika</text>
+</g>
+<!-- Cave -->
+<g class="zg" onclick="sel('cave')">
+  <rect class="zr" id="r_cave" x="313" y="20" width="82" height="68" rx="5" fill="#b0c4d8" stroke="#6a90b0" stroke-width="1"/>
+  <text class="zl" x="354" y="46" text-anchor="middle" font-size="9.5" font-weight="500" fill="var(--color-text-primary)">Cave</text>
+  <text class="zl" x="354" y="58" text-anchor="middle" font-size="8" fill="var(--color-text-secondary)">Frigo naturel</text>
+  <text class="zl" x="354" y="70" text-anchor="middle" font-size="7.5" fill="#6a90b0">↗ conserves 1200kg</text>
+</g>
+<!-- Aquaponie -->
+<g class="zg" onclick="sel('aquaponie')">
+  <rect class="zr" id="r_aquaponie" x="403" y="20" width="95" height="68" rx="5" fill="#8ecae6" stroke="#3a90c0" stroke-width="1"/>
+  <text class="zl" x="450" y="43" text-anchor="middle" font-size="9.5" font-weight="500" fill="var(--color-text-primary)">Aquaponie</text>
+  <text class="zl" x="450" y="55" text-anchor="middle" font-size="8" fill="var(--color-text-secondary)">4 bassins · truites</text>
+  <text class="zl" x="450" y="67" text-anchor="middle" font-size="7.5" fill="#3a90c0">↗ truites · salades</text>
+</g>
+<!-- Aromatiques -->
+<g class="zg" onclick="sel('aromatiques')">
+  <rect class="zr" id="r_aromatiques" x="506" y="20" width="100" height="68" rx="5" fill="#a8d8a8" stroke="#4a9a4a" stroke-width="1"/>
+  <text class="zl" x="556" y="46" text-anchor="middle" font-size="9.5" font-weight="500" fill="var(--color-text-primary)">Aromatiques</text>
+  <text class="zl" x="556" y="58" text-anchor="middle" font-size="8" fill="var(--color-text-secondary)">5 bacs spécialisés</text>
+  <text class="zl" x="556" y="70" text-anchor="middle" font-size="7.5" fill="#4a9a4a">↗ fraîches · séchées</text>
+</g>
+<!-- Cuves eau -->
+<g class="zg" onclick="sel('stockage_eau')">
+  <rect class="zr" id="r_stockage_eau" x="614" y="20" width="100" height="68" rx="5" fill="#aad4ea" stroke="#4a88b0" stroke-width="1"/>
+  <text class="zl" x="664" y="46" text-anchor="middle" font-size="9.5" font-weight="500" fill="var(--color-text-primary)">Cuves eau</text>
+  <text class="zl" x="664" y="58" text-anchor="middle" font-size="8" fill="var(--color-text-secondary)">récupération pluie</text>
+  <text class="zl" x="664" y="70" text-anchor="middle" font-size="7.5" fill="#4a88b0">↗ zones 1·2·3</text>
+</g>
+<!-- Bacs salades hiver + cuisine -->
+<g class="zg" onclick="sel('salades_hiver')">
+  <rect class="zr" id="r_salades_hiver" x="133" y="96" width="170" height="58" rx="5" fill="#c8e6c9" stroke="#5aab5a" stroke-width="1"/>
+  <text class="zl" x="218" y="121" text-anchor="middle" font-size="9.5" font-weight="500" fill="var(--color-text-primary)">Bacs salades hiver</text>
+  <text class="zl" x="218" y="133" text-anchor="middle" font-size="7.5" fill="#5aab5a">↗ salade fraîche nov–mars</text>
+</g>
+<g class="zg" onclick="sel('cuisine')">
+  <rect class="zr" id="r_cuisine" x="311" y="96" width="190" height="58" rx="5" fill="#e8d5b8" stroke="#b09060" stroke-width="1"/>
+  <text class="zl" x="406" y="118" text-anchor="middle" font-size="9.5" font-weight="500" fill="var(--color-text-primary)">Cuisine / Transformation</text>
+  <text class="zl" x="406" y="130" text-anchor="middle" font-size="7.5" fill="#b09060">↗ repas table d'hôtes · fromage · beurre</text>
+  <text class="zl" x="406" y="142" text-anchor="middle" font-size="7.5" fill="#b09060">lactofermentations · confitures</text>
+</g>
+<!-- Hangar outils -->
+<g class="zg" onclick="sel('hangar')">
+  <rect class="zr" id="r_hangar" x="614" y="96" width="100" height="68" rx="5" fill="#d0d0d0" stroke="#888" stroke-width="1"/>
+  <text class="zl" x="664" y="122" text-anchor="middle" font-size="9.5" font-weight="500" fill="var(--color-text-primary)">Hangar</text>
+  <text class="zl" x="664" y="134" text-anchor="middle" font-size="8" fill="var(--color-text-secondary)">outils &amp; machines</text>
+  <text class="zl" x="664" y="146" text-anchor="middle" font-size="7.5" fill="#888">→ toutes zones</text>
+</g>
+
+<!-- ══ HAIE 1 (entre Z1 et Z2) ══ -->
+<!-- Haie fruitière en bordure + champignons en ligne -->
+<g class="zg" onclick="sel('haie1')">
+  <rect class="zr" id="r_haie1" x="10" y="178" width="610" height="18" rx="4" fill="#3d6b2c" opacity="0.22"/>
+  <text class="zl" x="315" y="190" text-anchor="middle" font-size="7.5" fill="#3d6b2c" font-weight="500">haie fruitière — mûres · framboises · cassis · groseilles · sureau · caseille</text>
+</g>
+<!-- Champignons bordure gauche (Z1→Z2) -->
+<g class="zg" onclick="sel('champignons_haie')">
+  <rect class="zr" id="r_champignons_haie" x="628" y="178" width="86" height="18" rx="4" fill="#c8b8d8" opacity="0.7"/>
+  <text class="zl" x="671" y="190" text-anchor="middle" font-size="7.5" fill="#7a5a9a" font-weight="500">champignons — rondins</text>
+</g>
+
+<!-- ══════════════════════════════════════════════════════
+     ZONE 2 — MARAÎCHAGE + POULAILLER CENTRAL
+════════════════════════════════════════════════════════ -->
+<text x="10" y="210" font-size="8.5" font-family="var(--font-sans)" fill="var(--color-text-tertiary)" font-weight="500">ZONE 2 — Cœur maraîcher + poulailler central</text>
+
+<!-- Grille Zone 2 :
+     Gauche (x10):  Verger (haut) + Parcelle A (bas)
+     Centre (x250): Poulailler central
+     Droite (x390): Parcelle B (haut) + Jachère (bas)
+     + Coins vivaces et compost autour du poulailler
+-->
+
+<!-- VERGER (haut gauche) -->
+<g class="zg" onclick="sel('verger')">
+  <rect class="zr" id="r_verger" x="10" y="218" width="228" height="118" rx="5" fill="#c8d8a0" stroke="#7aaa3a" stroke-width="1"/>
+  <text class="zl" x="124" y="264" text-anchor="middle" font-size="9.5" font-weight="500" fill="var(--color-text-primary)">Verger (Parcelle 1)</text>
+  <text class="zl" x="124" y="276" text-anchor="middle" font-size="8" fill="var(--color-text-secondary)">pommiers · fraises au sol</text>
+  <text class="zl" x="124" y="288" text-anchor="middle" font-size="7.5" fill="#7aaa3a">↗ pommes · fraises · poules en fin saison</text>
+  <!-- Ouverture vers poulailler (droite du rect) -->
+  <rect x="234" y="264" width="12" height="18" rx="2" fill="#EF9F27" opacity="0.6"/>
+</g>
+
+<!-- PARCELLE A (bas gauche) -->
+<g class="zg" onclick="sel('parcelle_a')">
+  <rect class="zr" id="r_parcelle_a" x="10" y="344" width="228" height="118" rx="5" fill="#a8e6b0" stroke="#3aaa5a" stroke-width="1"/>
+  <text class="zl" x="124" y="386" text-anchor="middle" font-size="9.5" font-weight="500" fill="var(--color-text-primary)">Parcelle A — Racines</text>
+  <text class="zl" x="124" y="398" text-anchor="middle" font-size="8" fill="var(--color-text-secondary)">&amp; légumineuses</text>
+  <text class="zl" x="124" y="410" text-anchor="middle" font-size="7.5" fill="#3aaa5a">↗ légumes racines · protéines végétales</text>
+  <!-- Ouverture vers poulailler (droite) -->
+  <rect x="234" y="386" width="12" height="18" rx="2" fill="#EF9F27" opacity="0.6"/>
+</g>
+
+<!-- POULAILLER CENTRAL -->
+<g class="zg" onclick="sel('poulailler')">
+  <rect class="zr" id="r_poulailler" x="250" y="270" width="130" height="130" rx="6" fill="#f5e0b8" stroke="#cc9a3a" stroke-width="1.5"/>
+  <text class="zl" x="315" y="318" text-anchor="middle" font-size="10" font-weight="500" fill="var(--color-text-primary)">Poulailler</text>
+  <text class="zl" x="315" y="330" text-anchor="middle" font-size="9" fill="var(--color-text-secondary)">central</text>
+  <text class="zl" x="315" y="344" text-anchor="middle" font-size="7.5" fill="#cc9a3a">↗ œufs · fumier</text>
+  <text class="zl" x="315" y="356" text-anchor="middle" font-size="7.5" fill="#cc9a3a">nettoyage parcelles</text>
+  <!-- Portes vers les 4 parcelles -->
+  <rect x="238" y="322" width="12" height="16" rx="2" fill="#EF9F27" opacity="0.8"/><!-- gauche haut (verger) -->
+  <rect x="238" y="356" width="12" height="16" rx="2" fill="#EF9F27" opacity="0.8"/><!-- gauche bas (A) -->
+  <rect x="380" y="322" width="12" height="16" rx="2" fill="#EF9F27" opacity="0.8"/><!-- droite haut (B) -->
+  <rect x="380" y="356" width="12" height="16" rx="2" fill="#EF9F27" opacity="0.8"/><!-- droite bas (jachere) -->
+  <rect x="298" y="258" width="34" height="12" rx="2" fill="#EF9F27" opacity="0.5"/><!-- haut (vivaces) -->
+  <rect x="298" y="400" width="34" height="12" rx="2" fill="#EF9F27" opacity="0.5"/><!-- bas (compost) -->
+</g>
+
+<!-- PARCELLE B (haut droite) -->
+<g class="zg" onclick="sel('parcelle_b')">
+  <rect class="zr" id="r_parcelle_b" x="392" y="218" width="228" height="118" rx="5" fill="#c8f0a8" stroke="#5acc3a" stroke-width="1"/>
+  <text class="zl" x="506" y="260" text-anchor="middle" font-size="9.5" font-weight="500" fill="var(--color-text-primary)">Parcelle B — Légumes fruits</text>
+  <text class="zl" x="506" y="272" text-anchor="middle" font-size="8" fill="var(--color-text-secondary)">&amp; choux</text>
+  <text class="zl" x="506" y="284" text-anchor="middle" font-size="7.5" fill="#5acc3a">↗ tomates · aubergines · choux</text>
+  <text class="zl" x="506" y="296" text-anchor="middle" font-size="7.5" fill="#5acc3a">courgettes · poivrons</text>
+  <!-- Ouverture vers poulailler (gauche) -->
+  <rect x="380" y="264" width="12" height="18" rx="2" fill="#EF9F27" opacity="0.6"/>
+</g>
+
+<!-- JACHÈRE (bas droite) -->
+<g class="zg" onclick="sel('jachere')">
+  <rect class="zr" id="r_jachere" x="392" y="344" width="228" height="118" rx="5" fill="#e0d8a8" stroke="#9a9a3a" stroke-width="1"/>
+  <text class="zl" x="506" y="386" text-anchor="middle" font-size="9.5" font-weight="500" fill="var(--color-text-primary)">Jachère active</text>
+  <text class="zl" x="506" y="398" text-anchor="middle" font-size="8" fill="var(--color-text-secondary)">+ poules en rotation</text>
+  <text class="zl" x="506" y="410" text-anchor="middle" font-size="7.5" fill="#9a9a3a">↗ azote fixé · biomasse · sol enrichi</text>
+  <!-- Ouverture vers poulailler (gauche) -->
+  <rect x="380" y="386" width="12" height="18" rx="2" fill="#EF9F27" opacity="0.6"/>
+</g>
+
+<!-- VIVACES (au-dessus poulailler) -->
+<g class="zg" onclick="sel('vivaces')">
+  <rect class="zr" id="r_vivaces" x="250" y="218" width="130" height="46" rx="4" fill="#b0e8c8" stroke="#3aaa6a" stroke-width="1"/>
+  <text class="zl" x="315" y="236" text-anchor="middle" font-size="9" font-weight="500" fill="var(--color-text-primary)">Coins vivaces</text>
+  <text class="zl" x="315" y="248" text-anchor="middle" font-size="7.5" fill="#3aaa6a">↗ asperges · rhubarbe · ail rocambole</text>
+</g>
+
+<!-- COMPOST (en dessous poulailler) -->
+<g class="zg" onclick="sel('compost')">
+  <rect class="zr" id="r_compost" x="250" y="412" width="130" height="46" rx="4" fill="#c8b888" stroke="#8a7a4a" stroke-width="1"/>
+  <text class="zl" x="315" y="430" text-anchor="middle" font-size="9" font-weight="500" fill="var(--color-text-primary)">Compost</text>
+  <text class="zl" x="315" y="442" text-anchor="middle" font-size="7.5" fill="#8a7a4a">↗ amendement parcelles</text>
+</g>
+
+<!-- ══ HAIE 2 (entre Z2 et Z3) ══ -->
+<g class="zg" onclick="sel('haie2')">
+  <rect class="zr" id="r_haie2" x="10" y="470" width="608" height="18" rx="4" fill="#3d6b2c" opacity="0.22"/>
+  <text class="zl" x="314" y="482" text-anchor="middle" font-size="7.5" fill="#3d6b2c" font-weight="500">haie fruitière — prunellier · argousier · sureau · groseilles · caseille · haies défensives</text>
+</g>
+<!-- Champignons bordure droite (Z2→Z3) -->
+<g class="zg" onclick="sel('champignons_haie')">
+  <rect class="zr" id="r_champignons_haie2" x="626" y="218" width="88" height="270" rx="4" fill="#c8b8d8" opacity="0.55"/>
+  <text class="zl" x="670" y="305" text-anchor="middle" font-size="8.5" font-weight="500" fill="#7a5a9a" writing-mode="tb">🍄 shiitake · pleurote</text>
+  <text class="zl" x="670" y="340" text-anchor="middle" font-size="7.5" fill="#7a5a9a">rondins percés</text>
+  <text class="zl" x="670" y="352" text-anchor="middle" font-size="7.5" fill="#7a5a9a">bûches ombragées</text>
+</g>
+
+<!-- ══════════════════════════════════════════════════════
+     ZONE 3 — EXTENSIF
+════════════════════════════════════════════════════════ -->
+<text x="10" y="502" font-size="8.5" font-family="var(--font-sans)" fill="var(--color-text-tertiary)" font-weight="500">ZONE 3 — Extensif · vaches · noyers · biodiversité</text>
+
+<!-- Pâturage vaches -->
+<g class="zg" onclick="sel('paturage')">
+  <rect class="zr" id="r_paturage" x="10" y="512" width="200" height="150" rx="5" fill="#d4e8a8" stroke="#7aaa3a" stroke-width="1"/>
+  <text class="zl" x="110" y="565" text-anchor="middle" font-size="9.5" font-weight="500" fill="var(--color-text-primary)">Pâturage vaches</text>
+  <text class="zl" x="110" y="577" text-anchor="middle" font-size="8" fill="var(--color-text-secondary)">Jersey · Vosgienne</text>
+  <text class="zl" x="110" y="589" text-anchor="middle" font-size="7.5" fill="#7aaa3a">↗ lait 2500 L/an</text>
+  <text class="zl" x="110" y="600" text-anchor="middle" font-size="7.5" fill="#7aaa3a">fumier 8000 kg/an</text>
+  <text class="zl" x="110" y="611" text-anchor="middle" font-size="7.5" fill="#7aaa3a">beurre · crème</text>
+</g>
+
+<!-- Fromagerie -->
+<g class="zg" onclick="sel('fromagerie')">
+  <rect class="zr" id="r_fromagerie" x="218" y="512" width="98" height="70" rx="5" fill="#f0e8d0" stroke="#c0a870" stroke-width="1"/>
+  <text class="zl" x="267" y="542" text-anchor="middle" font-size="9.5" font-weight="500" fill="var(--color-text-primary)">Fromagerie</text>
+  <text class="zl" x="267" y="554" text-anchor="middle" font-size="8" fill="var(--color-text-secondary)">laiterie</text>
+  <text class="zl" x="267" y="566" text-anchor="middle" font-size="7.5" fill="#c0a870">↗ fromage · beurre · crème</text>
+</g>
+
+<!-- Noyers -->
+<g class="zg" onclick="sel('noyers')">
+  <rect class="zr" id="r_noyers" x="218" y="590" width="98" height="72" rx="5" fill="#c8d088" stroke="#7a8a2a" stroke-width="1"/>
+  <text class="zl" x="267" y="622" text-anchor="middle" font-size="9.5" font-weight="500" fill="var(--color-text-primary)">Noyers</text>
+  <text class="zl" x="267" y="634" text-anchor="middle" font-size="7.5" fill="#7a8a2a">↗ noix · huile de noix</text>
+</g>
+
+<!-- Ruches -->
+<g class="zg" onclick="sel('ruches')">
+  <rect class="zr" id="r_ruches" x="324" y="512" width="108" height="70" rx="5" fill="#f8e888" stroke="#c8a820" stroke-width="1"/>
+  <text class="zl" x="378" y="538" text-anchor="middle" font-size="9.5" font-weight="500" fill="var(--color-text-primary)">Ruches</text>
+  <text class="zl" x="378" y="550" text-anchor="middle" font-size="8" fill="var(--color-text-secondary)">2–4 ruches Warré</text>
+  <text class="zl" x="378" y="562" text-anchor="middle" font-size="7.5" fill="#c8a820">↗ miel · cire · pollinisation</text>
+</g>
+
+<!-- Mellifères -->
+<g class="zg" onclick="sel('melliferes')">
+  <rect class="zr" id="r_melliferes" x="324" y="590" width="108" height="72" rx="5" fill="#fdf4c0" stroke="#c8a820" stroke-width="1"/>
+  <text class="zl" x="378" y="620" text-anchor="middle" font-size="9.5" font-weight="500" fill="var(--color-text-primary)">Mellifères</text>
+  <text class="zl" x="378" y="632" text-anchor="middle" font-size="8" fill="var(--color-text-secondary)">lavande · bourrache · cosmos</text>
+  <text class="zl" x="378" y="644" text-anchor="middle" font-size="7.5" fill="#c8a820">↗ pollinisation · biodiversité</text>
+</g>
+
+<!-- Champignons Z3 -->
+<g class="zg" onclick="sel('champignons')">
+  <rect class="zr" id="r_champignons" x="440" y="512" width="108" height="70" rx="5" fill="#c8b8d8" stroke="#7a5a9a" stroke-width="1"/>
+  <text class="zl" x="494" y="540" text-anchor="middle" font-size="9.5" font-weight="500" fill="var(--color-text-primary)">Champignons</text>
+  <text class="zl" x="494" y="552" text-anchor="middle" font-size="8" fill="var(--color-text-secondary)">shiitake · pleurote</text>
+  <text class="zl" x="494" y="564" text-anchor="middle" font-size="7.5" fill="#7a5a9a">↗ champignons frais / secs</text>
+</g>
+
+<!-- Sauvage comestible -->
+<g class="zg" onclick="sel('sauvage')">
+  <rect class="zr" id="r_sauvage" x="440" y="590" width="108" height="72" rx="5" fill="#d0e8c0" stroke="#6a9a4a" stroke-width="1"/>
+  <text class="zl" x="494" y="618" text-anchor="middle" font-size="9.5" font-weight="500" fill="var(--color-text-primary)">Sauvage</text>
+  <text class="zl" x="494" y="630" text-anchor="middle" font-size="8" fill="var(--color-text-secondary)">comestible</text>
+  <text class="zl" x="494" y="642" text-anchor="middle" font-size="7.5" fill="#6a9a4a">↗ cueillette · biodiversité max</text>
+</g>
+
+<!-- Champignons en bordure zone 3 (haie gauche verticale) -->
+<g class="zg" onclick="sel('champignons_haie')">
+  <rect x="626" y="490" width="88" height="175" rx="4" fill="#c8b8d8" opacity="0.45"/>
+  <text x="670" y="538" text-anchor="middle" font-size="7.5" fill="#7a5a9a" font-family="var(--font-sans)" font-weight="500">champignons</text>
+  <text x="670" y="550" text-anchor="middle" font-size="7" fill="#7a5a9a" font-family="var(--font-sans)">bordure terrain</text>
+  <text x="670" y="562" text-anchor="middle" font-size="7" fill="#7a5a9a" font-family="var(--font-sans)">rondins / palissades</text>
+</g>
+
+<!-- ══ HAIE BAS (bordure sud) ══ -->
+<g class="zg" onclick="sel('haie_bas')">
+  <rect x="10" y="676" width="700" height="16" rx="4" fill="#3d6b2c" opacity="0.22"/>
+  <text x="360" y="687" text-anchor="middle" font-size="7.5" fill="#3d6b2c" font-weight="500" font-family="var(--font-sans)">haie défensive sud — prunellier · épine noire · ronces · argousier</text>
+</g>
+
+<!-- ══════════════════════════════════════════
+     FLUX
+══════════════════════════════════════════ -->
+
+<!-- EAU : cuves → aromatiques, → serre semis, → aquaponie -->
+<path id="fw1" class="fl" stroke="#3B8BD4" stroke-dasharray="5,3" d="M614 54 L600 54 L556 54 L556 88" marker-end="url(#aW)"/>
+<path id="fw2" class="fl" stroke="#3B8BD4" stroke-dasharray="5,3" d="M614 40 L450 40 L450 88" marker-end="url(#aW)"/>
+<path id="fw3" class="fl" stroke="#3B8BD4" stroke-dasharray="5,3" d="M614 60 L200 60 L174 60 L174 88" marker-end="url(#aW)"/>
+
+<!-- FERTILITÉ : compost → parcelle A, → verger, → parcelle B -->
+<path id="ff1" class="fl" stroke="#639922" stroke-dasharray="5,3" d="M250 435 L124 435 L124 462" marker-end="url(#aF)"/>
+<path id="ff2" class="fl" stroke="#639922" stroke-dasharray="5,3" d="M315 458 L315 470 L315 462" marker-end="url(#aF)"/>
+<path id="ff3" class="fl" stroke="#639922" stroke-dasharray="5,3" d="M380 435 L506 435 L506 462" marker-end="url(#aF)"/>
+<!-- fumier vaches → compost -->
+<path id="ff4" class="fl" stroke="#639922" stroke-dasharray="5,3" d="M110 512 L110 488 L315 488 L315 458" marker-end="url(#aF)"/>
+
+<!-- CUISINE : aquaponie → cuisine, z2 → cuisine, lait → cuisine -->
+<path id="fh1" class="fl" stroke="#E8593C" stroke-dasharray="4,3" d="M450 88 L450 100" marker-end="url(#aH)"/>
+<path id="fh2" class="fl" stroke="#E8593C" stroke-dasharray="4,3" d="M124 336 L124 162 L311 140" marker-end="url(#aH)"/>
+<path id="fh3" class="fl" stroke="#E8593C" stroke-dasharray="4,3" d="M267 512 L267 160 L370 140" marker-end="url(#aH)"/>
+<path id="fh4" class="fl" stroke="#E8593C" stroke-dasharray="4,3" d="M506 336 L506 170 L500 154" marker-end="url(#aH)"/>
+
+<!-- ANIMAUX : poules → parcelles (trajet porte) -->
+<path id="fa1" class="fl" stroke="#EF9F27" stroke-dasharray="4,3" d="M250 330 L244 330" marker-end="url(#aA)"/>
+<path id="fa2" class="fl" stroke="#EF9F27" stroke-dasharray="4,3" d="M250 364 L244 364" marker-end="url(#aA)"/>
+<path id="fa3" class="fl" stroke="#EF9F27" stroke-dasharray="4,3" d="M380 330 L386 330" marker-end="url(#aA)"/>
+<path id="fa4" class="fl" stroke="#EF9F27" stroke-dasharray="4,3" d="M380 364 L386 364" marker-end="url(#aA)"/>
+
+<!-- SÉCHOIR : aromatiques → séchoir, parcelles → séchoir -->
+<path id="ft1" class="fl" stroke="#7a5a9a" stroke-dasharray="3,3" d="M264 88 L264 60 L313 60 L313 96" marker-end="url(#aT)"/>
+
+<!-- Légende flux -->
+<rect x="10" y="700" width="580" height="22" rx="4" fill="var(--color-background-primary)" opacity="0.7"/>
+<line x1="18" y1="712" x2="42" y2="712" stroke="#3B8BD4" stroke-dasharray="4,2" stroke-width="1.5"/>
+<text x="46" y="715" font-size="8" font-family="var(--font-sans)" fill="var(--color-text-secondary)">Eau</text>
+<line x1="80" y1="712" x2="104" y2="712" stroke="#639922" stroke-dasharray="4,2" stroke-width="1.5"/>
+<text x="108" y="715" font-size="8" font-family="var(--font-sans)" fill="var(--color-text-secondary)">Fertilité</text>
+<line x1="152" y1="712" x2="176" y2="712" stroke="#E8593C" stroke-dasharray="4,2" stroke-width="1.5"/>
+<text x="180" y="715" font-size="8" font-family="var(--font-sans)" fill="var(--color-text-secondary)">Cuisine</text>
+<line x1="224" y1="712" x2="248" y2="712" stroke="#EF9F27" stroke-dasharray="4,2" stroke-width="1.5"/>
+<text x="252" y="715" font-size="8" font-family="var(--font-sans)" fill="var(--color-text-secondary)">Animaux</text>
+<line x1="300" y1="712" x2="324" y2="712" stroke="#7a5a9a" stroke-dasharray="3,2" stroke-width="1.5"/>
+<text x="328" y="715" font-size="8" font-family="var(--font-sans)" fill="var(--color-text-secondary)">Transformation</text>
+<rect x="390" y="706" width="8" height="8" rx="2" fill="#EF9F27" opacity="0.7"/>
+<text x="402" y="715" font-size="8" font-family="var(--font-sans)" fill="var(--color-text-secondary)">Portes poulailler</text>
+<rect x="460" y="706" width="18" height="8" rx="2" fill="#3d6b2c" opacity="0.3"/>
+<text x="482" y="715" font-size="8" font-family="var(--font-sans)" fill="var(--color-text-secondary)">Haies</text>
+<rect x="510" y="706" width="18" height="8" rx="2" fill="#c8b8d8" opacity="0.6"/>
+<text x="532" y="715" font-size="8" font-family="var(--font-sans)" fill="var(--color-text-secondary)">Champignons</text>
+
+</svg>
+</div>
+<div id="side-panel">
+  <div id="panel-header">
+    <div id="panel-title">Sélectionner une zone</div>
+    <div id="panel-meta"></div>
+  </div>
+  <div id="panel-body"><div class="hint">Cliquez sur une zone de la carte pour voir ses détails, tâches et outils.</div></div>
+  <div id="filters">
+    <div style="font-size:10px;font-weight:500;color:var(--color-text-secondary);margin-bottom:4px;">Afficher les flux</div>
+    <label><input type="checkbox" id="fW" checked onchange="uf()"> Eau</label>
+    <label><input type="checkbox" id="fF" checked onchange="uf()"> Fertilité</label>
+    <label><input type="checkbox" id="fH" checked onchange="uf()"> Cuisine</label>
+    <label><input type="checkbox" id="fA" checked onchange="uf()"> Animaux</label>
+    <label><input type="checkbox" id="fT" checked onchange="uf()"> Transformation</label>
+  </div>
+</div>
+</div>
+</div>
+<script>
+const Z={
+  earthship:{name:"Maison Earthship",type:"habitat",surface:180,
+    desc:"Maison passive autonome : serre intégrée sud, puits canadien, récupération eau de pluie, forte inertie thermique, panneaux solaires.",
+    plants:["Serre intégrée (hiver)"],animals:[],
+    inputs:["Eau pluie","Énergie solaire","Air puits canadien","Récoltes toutes zones","Lait · œufs · poissons · aromatiques"],
+    outputs:["Repas table d'hôtes","Bocaux conserves","Lactofermentations","Chaleur stockée"],
+    tools:["Filtre eau","Batterie/onduleur","Thermomètre serre"],
+    tasks:{"1-8":[{t:"Contrôler filtration eau",p:"high"},{t:"Vérifier batteries",p:"med"}],"9-16":[{t:"Ouvrir serre soleil",p:"med"}],"17-40":[{t:"Ventilation naturelle",p:"med"}],"41-56":[{t:"Préparer stockage hivernal",p:"high"}]}},
+  serre_semis:{name:"Serre semis",type:"transformation",surface:30,
+    desc:"Tables hautes, armoire à graines, zone bouturage et repiquage. Semis précoces de mars à mai.",
+    plants:["Tomates (sem. 8–11)","Aubergines · poivrons (sem. 9–10)","Choux précoces","Basilic · laitues printemps"],animals:[],
+    inputs:["Graines","Terreau","Argile","Eau","Chaleur solaire"],
+    outputs:["Plants à repiquer","Boutures enracinées"],
+    tools:["Arrosoir fin","Plateaux semis","Étiquettes","Table lumineuse (optionnel)"],
+    tasks:{"1-8":[{t:"Préparer tables + terreau",p:"high"},{t:"Inventaire graines",p:"med"}],"9-16":[{t:"Semer tomates",p:"high"},{t:"Semer aubergines/poivrons",p:"high"},{t:"Bouturer romarin/thym",p:"low"}],"17-24":[{t:"Repiquer choux",p:"high"},{t:"Durcir les plants",p:"med"}],"25-40":[{t:"Semer salades été",p:"med"}],"41-56":[{t:"Trier graines + stockage",p:"med"}]}},
+  sechoir:{name:"Séchoir solaire",type:"transformation",surface:20,
+    desc:"Mur chauffant, tiroirs compartimentés herbes/fruits/champignons. Option fumage léger pour paprika hongrois.",
+    plants:["Thym · romarin · sauge · origan","Tomates · poivrons · piments","Champignons","Pommes · poires · prunes"],animals:[],
+    inputs:["Énergie solaire","Récoltes fraîches à transformer"],
+    outputs:["Herbes séchées","Tomates séchées","Paprika fumé","Poudre de piment","Fruits secs","Champignons secs","Infusions"],
+    tools:["Tiroirs séchage","Claies inox","Hygromètre","Fumoir simple (poivrons)"],
+    tasks:{"1-8":[{t:"Vérifier stocks herbes",p:"low"}],"25-32":[{t:"Sécher herbes d'été",p:"high"}],"33-40":[{t:"Sécher tomates",p:"high"},{t:"Faire paprika fumé",p:"high"},{t:"Sécher champignons",p:"med"}],"41-48":[{t:"Sécher pommes/poires",p:"high"}]}},
+  cave:{name:"Cave / Frigo naturel",type:"stockage",surface:25,
+    desc:"Cave enterrée à air frais du sol. Conservation légumes racines, fruits de garde, bocaux, lactofermentations.",
+    plants:["Pommes · poires","Pommes de terre","Carottes en sable","Betteraves · courges · noix · farines"],animals:[],
+    inputs:["Air frais du sol","Récoltes de stockage","Bocaux","Fermentations"],
+    outputs:["Légumes conservés tout l'hiver","Lactofermentations","Fromage/beurre frais"],
+    tools:["Caisses bois/sable","Hygromètre cave","Thermomètre"],
+    tasks:{"1-8":[{t:"Contrôler stocks",p:"high"},{t:"Trier légumes abîmés",p:"med"}],"41-48":[{t:"Rentrer courges + pommes de terre",p:"high"},{t:"Carottes en sable",p:"high"},{t:"Empiler bocaux",p:"med"}]}},
+  aquaponie:{name:"Aquaponie — 4 bassins",type:"eau",surface:40,
+    desc:"Système en circuit fermé : truites → nitrates → légumes feuilles → eau filtrée → truites. Filtration mécanique + biologique.",
+    plants:["Laitue pommée · batavia · feuille de chêne","Roquette · épinards · mizuna","Pak choï · cresson"],
+    animals:["Truites (Salmo trutta fario)"],
+    inputs:["Nourriture truites","Eau fraîche appoint","Énergie pompe","Oxygénation"],
+    outputs:["Truites (consommation)","Salades fraîches","Légumes feuilles rapides","Eau fertilisée circuit"],
+    tools:["Pompe aquaponie","Kit test ammoniaque/nitrites","Filet récolte","Oxygénateur"],
+    tasks:{"1-56":[{t:"Nourrir truites",p:"high"},{t:"Contrôle ammoniaque/nitrites",p:"high"},{t:"Vérifier pompe",p:"high"}],"9-16":[{t:"Démarrer nouvelles cultures",p:"high"}],"25-32":[{t:"Gérer ombrage chaleur",p:"high"}],"41-48":[{t:"Nettoyage circuit",p:"med"}]}},
+  aromatiques:{name:"Bacs aromatiques",type:"maraîchage",surface:15,
+    desc:"5 bacs spécialisés par groupe hydrique. Règle : toutes les aromatiques ici, jamais dans les parcelles.",
+    plants:["A – Méditerranéennes : thym · romarin · sauge · origan","B – Fraîches : persil · ciboulette · aneth · cerfeuil","C – Basilics (genovese · citron · pourpre)","D – Menthes (bac isolé obligatoire)","E – Gastronomiques : estragon · livèche · hysope"],animals:[],
+    inputs:["Eau (modulée par bac)"],
+    outputs:["Aromatiques fraîches cuisine","Aromatiques séchoir"],
+    tools:["Arrosoir fin","Ciseaux inox","Étiquettes bacs"],
+    tasks:{"1-8":[{t:"Tailler légèrement",p:"low"}],"9-16":[{t:"Remettre en végétation",p:"med"},{t:"Bouturer menthe/thym",p:"med"}],"17-40":[{t:"Récolter régulièrement",p:"high"},{t:"Sécher excédents",p:"med"}],"41-56":[{t:"Rentrer basilics en serre",p:"high"},{t:"Protéger du gel",p:"high"}]}},
+  salades_hiver:{name:"Bacs salades hiver",type:"maraîchage",surface:20,
+    desc:"Production continue de feuilles en saison froide sous tunnel ou vitrage. Relais de l'aquaponie.",
+    plants:["Mâche · roquette","Épinards · cresson","Laitues d'hiver résistantes"],animals:[],
+    inputs:["Eau","Chaleur solaire passive"],
+    outputs:["Salade fraîche nov–mars"],
+    tools:["Tunnel ou châssis vitré","Arrosoir fin"],
+    tasks:{"41-48":[{t:"Préparer bacs (substrat)",p:"high"},{t:"Semer mâche et roquette",p:"high"}],"49-56":[{t:"Récolter salades hiver",p:"high"}],"1-8":[{t:"Récolter et replanter",p:"high"}]}},
+  cuisine:{name:"Cuisine / Transformation",type:"transformation",surface:30,
+    desc:"Cœur de la table d'hôtes et de l'autonomie alimentaire. Transformation de toutes les récoltes du domaine.",
+    plants:[],animals:[],
+    inputs:["Récoltes toutes zones","Lait · œufs","Herbes séchées","Viande (si élevage)"],
+    outputs:["Repas table d'hôtes","Bocaux conserves","Lactofermentations","Fromages artisanaux","Confitures · sirops","Beurre · crème fraîche"],
+    tools:["Robot cuisine","Stérilisateur bocaux","Yaourtière","Balance précision","Mandoline"],
+    tasks:{"1-8":[{t:"Menus hiver (stocks cave)",p:"med"}],"17-32":[{t:"Cuisine printanière/estivale",p:"high"}],"33-40":[{t:"Faire conserves tomates",p:"high"},{t:"Lactofermentations",p:"high"},{t:"Confitures fruits rouges",p:"med"}],"41-56":[{t:"Compotes pommes/poires",p:"high"},{t:"Beurre et fromage frais",p:"med"}]}},
+  stockage_eau:{name:"Cuves eau de pluie",type:"eau",surface:10,
+    desc:"Récupération depuis toitures, filtration, distribution vers toutes les zones du domaine.",
+    plants:[],animals:[],
+    inputs:["Eau de pluie (toiture)"],
+    outputs:["Eau maison","Eau serre semis","Eau bacs aromatiques","Eau zone 2"],
+    tools:["Filtre premier flot","Pompe distribution","Jauge niveau cuve"],
+    tasks:{"1-56":[{t:"Contrôler niveau cuves",p:"med"},{t:"Vérifier filtration",p:"low"}]}},
+  hangar:{name:"Hangar outils & machines",type:"stockage",surface:60,
+    desc:"Stockage centralisé de tous les équipements. Chaque outil est assigné à une ou plusieurs zones.",
+    plants:[],animals:[],
+    inputs:["Carburant (tracteur/motoculteur)","Électricité (outils)"],
+    outputs:["Outils disponibles toutes zones"],
+    tools:[
+      "🚜 Motoculteur/microtracteur → zone 2 (labour parcelles)",
+      "🌿 Broyeur végétaux → compost / haies",
+      "💧 Pompe irrigation → zones 1·2·3",
+      "🔧 Tronçonneuse → noyers / haies / rondins champignons",
+      "🌾 Faucheuse → zone 3 pâturage / mellifères",
+      "🪣 Brouette × 3 → compost / récoltes",
+      "⛏ Fourche bêche · grelinette → parcelles A·B·jachère",
+      "✂ Sécateur · taille-haie → verger / haies",
+      "🎣 Épuisette · kit test → aquaponie",
+      "📦 Caisses récolte bois → cuisine / cave",
+      "🌡 Sondes température → serre / cave / séchoir",
+    ],
+    tasks:{"1-8":[{t:"Entretien outils (affûtage)",p:"high"},{t:"Vérifier motoculteur",p:"med"}],"17-24":[{t:"Sortir pompe irrigation",p:"high"}],"41-56":[{t:"Hiverner machines",p:"med"},{t:"Inventaire outillage",p:"low"}]}},
+  haie1:{name:"Haie fruitière Z1→Z2",type:"verger",surface:null,
+    desc:"Haie productive séparant zone 1 et zone 2. Fruits comestibles, abri biodiversité, haie défensive.",
+    plants:["Mûres · framboises · cassis","Groseilles · caseille · sureau","Églantier (baies)"],animals:["Insectes · oiseaux"],
+    inputs:["Aucun intrant"],
+    outputs:["Fruits frais","Confitures · sirops","Abri faune utile"],
+    tools:["Sécateur","Taille-haie"],
+    tasks:{"25-32":[{t:"Récolter framboises/cassis",p:"high"}],"33-40":[{t:"Récolter mûres",p:"high"}],"1-8":[{t:"Tailler haie si besoin",p:"low"}]}},
+  haie2:{name:"Haie fruitière Z2→Z3",type:"verger",surface:null,
+    desc:"Haie mixte fruitière et défensive séparant zone maraîchère et extensif.",
+    plants:["Prunellier · argousier","Sureau · groseilles · caseille","Haies défensives"],animals:["Insectes pollinisateurs"],
+    inputs:["Aucun intrant"],
+    outputs:["Baies sauvages","Haie défensive","Biodiversité"],
+    tools:["Sécateur","Taille-haie"],
+    tasks:{"41-48":[{t:"Récolter baies sauvages",p:"med"}],"1-8":[{t:"Tailler haie",p:"low"}]}},
+  haie_bas:{name:"Haie défensive sud",type:"verger",surface:null,
+    desc:"Haie défensive en bordure sud du domaine. Prunellier, épine noire, ronces, argousier.",
+    plants:["Prunellier · épine noire","Ronces · argousier"],animals:[],
+    inputs:["Aucun"],outputs:["Protection · biodiversité"],tools:["Taille-haie"],
+    tasks:{"1-8":[{t:"Inspecter haie défensive",p:"low"}]}},
+  champignons_haie:{name:"Champignons — bordures terrain",type:"champignons",surface:null,
+    desc:"Rondins percés et palissades bois disposés en bordure de terrain et dans les zones ombragées entre les zones.",
+    plants:["Shiitake (Lentinula edodes)","Pleurote (Pleurotus ostreatus)"],animals:[],
+    inputs:["Rondins de chêne/hêtre","Mycélium","Humidité zones ombragées"],
+    outputs:["Champignons frais","Champignons séchés → séchoir"],
+    tools:["Perceuse + mèche rondins","Marteau inoculateur","Cire d'abeille (scellage)","Hygromètre"],
+    tasks:{"1-8":[{t:"Récolter intérieur (conditions contrôlées)",p:"high"}],"9-16":[{t:"Inoculer nouveaux rondins",p:"med"}],"17-40":[{t:"Arroser rondins",p:"med"},{t:"Récolter",p:"high"}],"33-40":[{t:"Sécher champignons",p:"high"}]}},
+  verger:{name:"Verger (Parcelle 1)",type:"verger",surface:150,
+    desc:"Parcelle fixe avec pommiers variétés anciennes et fraises au sol. Accueille les poules en fin de saison via porte du poulailler.",
+    plants:["Pommiers variétés anciennes","Fraises au sol"],animals:["Poules (fin saison)"],
+    inputs:["Compost","Eau pluie"],
+    outputs:["Pommes","Fraises","Nettoyage parcelle (poules)"],
+    tools:["Sécateur","Taille-haie verger","Caisses récolte","Filet anti-grêle"],
+    tasks:{"1-8":[{t:"Tailler pommiers",p:"high"}],"25-32":[{t:"Récolter fraises",p:"high"}],"41-48":[{t:"Récolter pommes",p:"high"},{t:"Ouvrir aux poules",p:"med"}]}},
+  poulailler:{name:"Poulailler central",type:"animaux",surface:50,
+    desc:"Poulailler central avec 4 portes ouvrant sur chaque parcelle (verger, A, B, jachère). Rotation contrôlée pour fertilisation naturelle.",
+    plants:[],animals:["Poules pondeuses rustiques","Rotation : 1 parcelle à la fois"],
+    inputs:["Eau","Grains + restes légumes","Pâturage sur parcelles en rotation"],
+    outputs:["Œufs (quotidiens)","Fumier → compost","Nettoyage biologique des parcelles"],
+    tools:["Nichoirs","Perchoirs","Mangeoire automatique","Abreuvoir","Portillons × 4"],
+    tasks:{"1-56":[{t:"Eau + alimentation",p:"high"},{t:"Collecter les œufs",p:"high"},{t:"Ouvrir/fermer parcours",p:"high"},{t:"Contrôle prédateurs",p:"med"}],"41-48":[{t:"Ouvrir sur parcelles finies",p:"high"},{t:"Entretien litière",p:"med"}]}},
+  parcelle_a:{name:"Parcelle A — Racines & légumineuses",type:"maraîchage",surface:200,
+    desc:"Rotation annuelle. Accueille les poules via porte gauche du poulailler.",
+    plants:["Carotte Jaune du Doubs · Rouge Sang","Betterave Chioggia · Crapaudine","Panais · navet · radis noir · céleri-rave","Pois mangetout · fèves · haricots verts","Haricots secs tarbais"],animals:[],
+    inputs:["Compost poules","Eau pluie","Engrais verts"],
+    outputs:["Légumes racines automne/hiver","Protéines végétales"],
+    tools:["Grelinette","Semoir à main","Binette","Arrosoir / goutte-à-goutte"],
+    tasks:{"9-16":[{t:"Semer carottes/panais",p:"high"},{t:"Semer fèves/pois",p:"high"}],"17-24":[{t:"Installer paillage",p:"med"}],"25-32":[{t:"Récolter petits pois",p:"high"}],"33-40":[{t:"Récolter haricots secs",p:"high"},{t:"Récolter racines automne",p:"high"}],"41-48":[{t:"Rentrer racines en cave",p:"high"},{t:"Semer engrais verts",p:"med"}]}},
+  parcelle_b:{name:"Parcelle B — Légumes fruits & choux",type:"maraîchage",surface:200,
+    desc:"Solanacées, cucurbitacées, choux, légumes feuilles d'été. Accueille les poules via porte droite du poulailler.",
+    plants:["Tomate Noire de Crimée · Ananas · Roma","Courgette · tromboncino · concombre","Aubergine · poivron · paprika hongrois","Chou kale · cabus · rouge · Bruxelles","Poireau · fenouil · blette"],animals:[],
+    inputs:["Compost poules","Eau pluie","Tuteurs"],
+    outputs:["Légumes d'été","Tomates → séchoir","Paprika → séchoir"],
+    tools:["Tuteurs bambou","Ficelle tomates","Grelinette","Arrosoir / goutte-à-goutte","Pince taille tomates"],
+    tasks:{"9-16":[{t:"Semer en serre (tomates/auberg.)",p:"high"}],"17-24":[{t:"Planter tomates après gel",p:"high"},{t:"Installer tuteurs",p:"high"},{t:"Semer courgettes",p:"med"}],"25-32":[{t:"Tailler tomates",p:"high"},{t:"Récolter courgettes",p:"high"},{t:"Surveiller mildiou",p:"high"}],"33-40":[{t:"Récolter tomates",p:"high"},{t:"Envoyer au séchoir",p:"med"}],"41-48":[{t:"Récolter choux tardifs",p:"high"},{t:"Ouvrir aux poules",p:"med"}]}},
+  jachere:{name:"Jachère active + poules",type:"maraîchage",surface:150,
+    desc:"Parcelle en repos actif. Engrais verts, ouverture progressive aux poules pour fertilisation.",
+    plants:["Phacélie · trèfle · moutarde","Seigle engrais vert · vesce · sarrasin"],animals:["Poules (rotation)"],
+    inputs:["Semences engrais verts"],
+    outputs:["Azote fixé","Biomasse","Sol enrichi","Pollinisateurs"],
+    tools:["Semoir à la volée","Broyeur (avant grenaison)","Grelinette"],
+    tasks:{"9-16":[{t:"Semer engrais verts précoces",p:"high"}],"33-40":[{t:"Broyer avant grenaison",p:"med"}],"41-48":[{t:"Ouvrir aux poules",p:"high"},{t:"Semer seigle hivernal",p:"med"}]}},
+  vivaces:{name:"Coins vivaces fixes",type:"verger",surface:40,
+    desc:"Bordures et coins non retournés avec légumes vivaces pérennes. Production pluriannuelle sans labour.",
+    plants:["Asperges · rhubarbe · artichauts","Oseille · poireau perpétuel","Ail rocambole · oignon rocambole"],animals:[],
+    inputs:["Compost annuel"],
+    outputs:["Récoltes printanières précoces","Production pluriannuelle"],
+    tools:["Fourche bêche (une fois/an)","Sécateur"],
+    tasks:{"9-16":[{t:"Couper asperges",p:"high"},{t:"Récolter rhubarbe",p:"med"}],"41-48":[{t:"Planter ail et échalotes",p:"high"}]}},
+  compost:{name:"Zone compost",type:"stockage",surface:15,
+    desc:"Compostage du fumier poules et vaches, déchets cuisine, engrais verts. Amendement principal.",
+    plants:[],animals:[],
+    inputs:["Fumier poules","Fumier vaches","Déchets cuisine","Taille / engrais verts"],
+    outputs:["Compost mûr → toutes parcelles"],
+    tools:["Fourche compost","Brouette","Thermomètre compost"],
+    tasks:{"1-56":[{t:"Retourner compost",p:"low"}],"17-24":[{t:"Distribuer sur parcelles",p:"high"}]}},
+  paturage:{name:"Pâturage vaches",type:"animaux",surface:6000,
+    desc:"Pâturage tournant pour 1–2 vaches laitières. Rotation sur sous-parcelles pour préserver la prairie.",
+    plants:["Prairie naturelle diversifiée","Foin stockage hivernal"],
+    animals:["Vache laitière Jersey / Bretonne Pie Noir / Vosgienne"],
+    inputs:["Pâture","Foin hiver","Eau","Minéraux","Abri"],
+    outputs:["Lait 2500 L/an","Fumier 8000 kg/an","Beurre · crème"],
+    tools:["Clôture électrique","Abreuvoir prairie","Traite (manuelle ou machine)","Brouette fumier"],
+    tasks:{"1-56":[{t:"Traite quotidienne",p:"high"},{t:"Eau + santé",p:"high"},{t:"Contrôle clôtures",p:"med"}],"17-40":[{t:"Rotation pâturage",p:"high"}],"41-56":[{t:"Constituer foin hivernal",p:"high"}]}},
+  fromagerie:{name:"Fromagerie / Laiterie",type:"transformation",surface:20,
+    desc:"Espace transformation du lait frais en beurre, crème, fromage frais, yaourt. Lié à table d'hôtes.",
+    plants:[],animals:[],
+    inputs:["Lait frais (vaches)"],
+    outputs:["Beurre","Crème fraîche","Fromage frais artisanal","Yaourt"],
+    tools:["Baratte à beurre","Moules à fromage","Passoire fine","Thermomètre lait","Pot fermentation"],
+    tasks:{"1-56":[{t:"Transformer lait quotidien",p:"high"},{t:"Entretien matériel laiterie",p:"med"}]}},
+  noyers:{name:"Noyers",type:"verger",surface:2000,
+    desc:"Zone de noyers avec espacement adapté à la juglone. Récolte automne. Pas de légumes sensibles sous couronne.",
+    plants:["Noyers variétés locales"],animals:[],
+    inputs:["Extensif – peu d'intrants"],
+    outputs:["Noix","Huile de noix","Bois / biomasse"],
+    tools:["Gaulette récolte noix","Caisses bois","Presse huile (optionnel)"],
+    tasks:{"1-8":[{t:"Tailler si besoin",p:"low"}],"41-48":[{t:"Récolter noix",p:"high"},{t:"Stocker en cave sèche",p:"high"}]}},
+  ruches:{name:"Ruches — 2 à 4 Warré",type:"animaux",surface:10,
+    desc:"Ruches Warré positionnées en bordure des mellifères et à proximité des zones fleuries. Pollinisation de toutes les cultures.",
+    plants:[],animals:["Abeilles (Apis mellifera)"],
+    inputs:["Nectar et pollen des mellifères","Eau à proximité"],
+    outputs:["Miel (30–50 kg/ruche/an)","Cire","Pollinisation zones 1·2·3","Propolis"],
+    tools:["Combinaison apicole","Enfumoir","Lève-cadres","Extracteur miel","Pots miel"],
+    tasks:{"9-16":[{t:"Vérifier activité ruches",p:"high"},{t:"Installer ruche si nouvelle",p:"med"}],"17-32":[{t:"Contrôle varroa",p:"high"},{t:"Surveiller essaimage",p:"high"}],"33-40":[{t:"Récolter miel",p:"high"}],"41-56":[{t:"Préparer hivernage ruches",p:"high"},{t:"Nourrir si réserves insuffisantes",p:"med"}]}},
+  melliferes:{name:"Plantes mellifères",type:"verger",surface:200,
+    desc:"Bande mellifère continue pour pollinisateurs. En symbiose directe avec les ruches.",
+    plants:["Phacélie · lavande · bourrache","Cosmos · souci · bleuet","Sainfoin · mélilot · lotier"],animals:["Abeilles · bourdons · papillons"],
+    inputs:["Semis annuels (annuelles)","Peu d'entretien"],
+    outputs:["Pollinisation toutes zones","Nectar ruches","Biodiversité maximale"],
+    tools:["Semoir à la volée"],
+    tasks:{"9-16":[{t:"Semer annuelles mellifères",p:"med"}],"17-40":[{t:"Laisser fleurir librement",p:"low"}]}},
+  champignons:{name:"Champignons (zone 3)",type:"champignons",surface:100,
+    desc:"Rondins et palissades bois en zones ombragées et humides de la zone extensif.",
+    plants:["Shiitake (Lentinula edodes)","Pleurote (Pleurotus ostreatus)"],animals:[],
+    inputs:["Rondins chêne/hêtre","Mycélium"],
+    outputs:["Champignons frais (cuisine)","Champignons séchés (séchoir)"],
+    tools:["Perceuse inoculateur","Cire d'abeille","Hygromètre"],
+    tasks:{"17-40":[{t:"Arroser rondins",p:"med"},{t:"Récolter shiitake/pleurote",p:"high"}],"33-40":[{t:"Sécher excédents",p:"high"}]}},
+  sauvage:{name:"Plantes sauvages comestibles",type:"verger",surface:300,
+    desc:"Zone semi-naturelle avec cueillette sauvage saisonnière valorisée en cuisine.",
+    plants:["Ortie · pissenlit · plantain","Ail des ours (printemps)","Oxalis · alliaire","Reine-des-prés (zone humide)"],animals:[],
+    inputs:["Aucun intrant"],
+    outputs:["Cueillette sauvage","Biodiversité maximale"],
+    tools:["Panier cueillette","Guide plantes sauvages"],
+    tasks:{"9-24":[{t:"Récolter ail des ours",p:"high"},{t:"Cueillir orties jeunes",p:"med"}]}}
+};
+
+const TC={habitat:"#a89070",eau:"#3B8BD4",maraîchage:"#3aaa5a",verger:"#7aaa3a",animaux:"#cc9a3a",stockage:"#6a90b0",transformation:"#cc8f3a",champignons:"#7a5a9a"};
+const TL={habitat:"Habitat",eau:"Eau",maraîchage:"Maraîchage",verger:"Verger/Extensif",animaux:"Animaux",stockage:"Stockage",transformation:"Transformation",champignons:"Champignons"};
+
+function wr(w){
+  if(w<=8)return"1-8";if(w<=16)return"9-16";if(w<=24)return"17-24";if(w<=32)return"25-32";if(w<=40)return"33-40";if(w<=48)return"41-48";return"49-56";
+}
+
+let selZ=null,curW=22;
+
+function sel(id){
+  if(selZ){const p=document.getElementById("r_"+selZ);if(p)p.classList.remove("sel");}
+  selZ=id;
+  const r=document.getElementById("r_"+id);if(r)r.classList.add("sel");
+  rp(id,curW);
+}
+
+function rp(id,w){
+  const z=Z[id];if(!z)return;
+  document.getElementById("panel-title").textContent=z.name;
+  const c=TC[z.type]||"#888";
+  document.getElementById("panel-meta").innerHTML=
+    `<span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:${c};margin-right:4px;vertical-align:middle;"></span>${TL[z.type]||z.type}${z.surface?' · '+z.surface.toLocaleString('fr')+' m²':''}`;
+  const rng=wr(w);
+  let tasks=(z.tasks[rng]||z.tasks["1-56"]||[]);
+  let h="";
+  if(z.desc)h+=`<div class="ps"><p>${z.desc}</p></div>`;
+  if(z.outputs&&z.outputs.length){
+    h+=`<div class="ps"><h3>Productions / Outputs</h3>`;
+    z.outputs.forEach(o=>h+=`<span class="out-badge">${o}</span>`);
+    h+=`</div>`;
+  }
+  if(z.plants&&z.plants.length)h+=`<div class="ps"><h3>Plantes / Cultures</h3><ul>${z.plants.map(p=>`<li>${p}</li>`).join("")}</ul></div>`;
+  if(z.animals&&z.animals.length)h+=`<div class="ps"><h3>Animaux</h3><ul>${z.animals.map(a=>`<li>${a}</li>`).join("")}</ul></div>`;
+  if(z.inputs&&z.inputs.length)h+=`<div class="ps"><h3>Inputs</h3><ul>${z.inputs.map(i=>`<li>${i}</li>`).join("")}</ul></div>`;
+  if(z.tools&&z.tools.length)h+=`<div class="ps"><h3>Outils / Équipements</h3><ul>${z.tools.map(t=>`<li>${t}</li>`).join("")}</ul></div>`;
+  if(tasks.length){
+    h+=`<div class="ps"><h3>Tâches — Sem. ${w}</h3>`;
+    tasks.forEach(t=>{const c=t.p==="high"?"high":t.p==="med"?"med":"low";h+=`<div class="ti ${c}">${t.t}</div>`;});
+    h+=`</div>`;
+  } else {
+    h+=`<div class="ps"><h3>Tâches — Sem. ${w}</h3><p style="color:var(--color-text-tertiary);font-size:11px;">Pas de tâche spécifique cette semaine.</p></div>`;
+  }
+  document.getElementById("panel-body").innerHTML=h;
+}
+
+document.getElementById("wsl").addEventListener("input",function(){
+  curW=parseInt(this.value);
+  document.getElementById("wlb").textContent="Semaine "+curW;
+  if(selZ)rp(selZ,curW);
+});
+
+function uf(){
+  const fW=document.getElementById("fW").checked;
+  const fF=document.getElementById("fF").checked;
+  const fH=document.getElementById("fH").checked;
+  const fA=document.getElementById("fA").checked;
+  const fT=document.getElementById("fT").checked;
+  ["fw1","fw2","fw3"].forEach(id=>{const e=document.getElementById(id);if(e)e.classList.toggle("hid",!fW);});
+  ["ff1","ff2","ff3","ff4"].forEach(id=>{const e=document.getElementById(id);if(e)e.classList.toggle("hid",!fF);});
+  ["fh1","fh2","fh3","fh4"].forEach(id=>{const e=document.getElementById(id);if(e)e.classList.toggle("hid",!fH);});
+  ["fa1","fa2","fa3","fa4"].forEach(id=>{const e=document.getElementById(id);if(e)e.classList.toggle("hid",!fA);});
+  ["ft1"].forEach(id=>{const e=document.getElementById(id);if(e)e.classList.toggle("hid",!fT);});
+}
+</script>

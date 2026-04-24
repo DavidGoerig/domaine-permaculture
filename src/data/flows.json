@@ -1,0 +1,20 @@
+{
+  "flows": [
+    { "id": "fw1", "type": "water", "path": "M614 54 L556 54 L556 88" },
+    { "id": "fw2", "type": "water", "path": "M614 40 L450 40 L450 88" },
+    { "id": "fw3", "type": "water", "path": "M614 60 L174 60 L174 88" },
+    { "id": "ff1", "type": "fertility", "path": "M250 435 L124 435 L124 462" },
+    { "id": "ff2", "type": "fertility", "path": "M315 458 L315 488 L315 488" },
+    { "id": "ff3", "type": "fertility", "path": "M380 435 L506 435 L506 462" },
+    { "id": "ff4", "type": "fertility", "path": "M110 512 L110 488 L315 488 L315 458" },
+    { "id": "fh1", "type": "cuisine", "path": "M450 88 L450 96" },
+    { "id": "fh2", "type": "cuisine", "path": "M124 336 L124 162 L311 140" },
+    { "id": "fh3", "type": "cuisine", "path": "M267 512 L267 160 L370 140" },
+    { "id": "fh4", "type": "cuisine", "path": "M506 336 L506 170 L500 154" },
+    { "id": "fa1", "type": "animals", "path": "M250 330 L244 330" },
+    { "id": "fa2", "type": "animals", "path": "M250 364 L244 364" },
+    { "id": "fa3", "type": "animals", "path": "M380 330 L386 330" },
+    { "id": "fa4", "type": "animals", "path": "M380 364 L386 364" },
+    { "id": "ft1", "type": "transformation", "path": "M264 88 L264 60 L313 60 L313 96" }
+  ]
+}
