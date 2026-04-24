@@ -52,6 +52,14 @@ function lighten(hex: string, f: number): string {
   return `rgb(${c(h.slice(0,2))},${c(h.slice(2,4))},${c(h.slice(4,6))})`;
 }
 
+/* ── Texture pattern IDs ────────────────────────────────────────────────── */
+const ZONE_PATTERN: Partial<Record<ZoneType, string>> = {
+  habitat: 'ptHabitat', eau: 'ptEau', 'maraîchage': 'ptMaraichage',
+  verger: 'ptVerger', animaux: 'ptAnimaux', stockage: 'ptStockage',
+  transformation: 'ptTransformation', champignons: 'ptChampignons',
+  'mellifères': 'ptMelliferes',
+};
+
 /* ── Props ───────────────────────────────────────────────────────────────── */
 interface Props {
   zones: Zone[];
@@ -95,12 +103,18 @@ const IsometricMap: React.FC<Props> = ({
     const BL = lp(iso(x,     y + h));
 
     if (zonePlants.length === 0) {
+      const patId = ZONE_PATTERN[type];
       return (
-        <polygon
-          points={pts([TL, TR, BR, BL])}
-          fill={isSelected ? lighten(colors.fill, 0.22) : colors.fill}
-          stroke={strokeCol} strokeWidth={sw} strokeLinejoin="round"
-        />
+        <g>
+          <polygon points={pts([TL, TR, BR, BL])}
+            fill={isSelected ? lighten(colors.fill, 0.22) : colors.fill}
+            stroke={strokeCol} strokeWidth={sw} strokeLinejoin="round"/>
+          {patId && (
+            <polygon points={pts([TL, TR, BR, BL])}
+              fill={`url(#${patId})`} opacity={0.75}
+              stroke="none" pointerEvents="none"/>
+          )}
+        </g>
       );
     }
 
@@ -121,12 +135,18 @@ const IsometricMap: React.FC<Props> = ({
       yOff += sh;
     }
 
+    const patId = ZONE_PATTERN[type];
     return (
       <g>
-        {/* base fill */}
+        {/* base fill + texture */}
         <polygon points={pts([TL, TR, BR, BL])}
           fill={isSelected ? lighten(colors.fill, 0.22) : colors.fill}
           stroke="none"/>
+        {patId && (
+          <polygon points={pts([TL, TR, BR, BL])}
+            fill={`url(#${patId})`} opacity={0.5}
+            stroke="none" pointerEvents="none"/>
+        )}
         {strips.map(({ plant: p, y0, y1 }) => {
           const sTL = lp(iso(x,     y0));
           const sTR = lp(iso(x + w, y0));
@@ -267,6 +287,66 @@ const IsometricMap: React.FC<Props> = ({
           <stop offset="60%"  stopColor="#c8e0cc"/>
           <stop offset="100%" stopColor="#b8d8b8"/>
         </linearGradient>
+
+        {/* Habitat — briques */}
+        <pattern id="ptHabitat" x="0" y="0" width="9" height="5" patternUnits="userSpaceOnUse">
+          <line x1="0" y1="0" x2="9" y2="0" stroke="#a89070" strokeWidth="0.5" opacity="0.45"/>
+          <line x1="0" y1="2.5" x2="9" y2="2.5" stroke="#a89070" strokeWidth="0.5" opacity="0.45"/>
+          <line x1="4.5" y1="0" x2="4.5" y2="2.5" stroke="#a89070" strokeWidth="0.4" opacity="0.35"/>
+          <line x1="0" y1="2.5" x2="0" y2="5" stroke="#a89070" strokeWidth="0.4" opacity="0.35"/>
+          <line x1="9" y1="2.5" x2="9" y2="5" stroke="#a89070" strokeWidth="0.4" opacity="0.35"/>
+        </pattern>
+
+        {/* Eau — ondes */}
+        <pattern id="ptEau" x="0" y="0" width="10" height="5" patternUnits="userSpaceOnUse">
+          <path d="M0,2.5 Q2.5,1 5,2.5 Q7.5,4 10,2.5" stroke="#3a90c0" strokeWidth="0.6" fill="none" opacity="0.5"/>
+        </pattern>
+
+        {/* Maraîchage — rangées de pointillés */}
+        <pattern id="ptMaraichage" x="0" y="0" width="7" height="5" patternUnits="userSpaceOnUse">
+          <circle cx="1.5" cy="1.5" r="0.9" fill="#3aaa5a" opacity="0.45"/>
+          <circle cx="5" cy="1.5" r="0.9" fill="#3aaa5a" opacity="0.45"/>
+          <circle cx="3" cy="4" r="0.9" fill="#3aaa5a" opacity="0.45"/>
+        </pattern>
+
+        {/* Verger — couronnes d'arbres */}
+        <pattern id="ptVerger" x="0" y="0" width="12" height="9" patternUnits="userSpaceOnUse">
+          <circle cx="6" cy="4.5" r="3" fill="none" stroke="#7aaa3a" strokeWidth="0.5" opacity="0.45"/>
+          <circle cx="6" cy="4.5" r="1" fill="#7aaa3a" opacity="0.25"/>
+        </pattern>
+
+        {/* Animaux — touffes d'herbe */}
+        <pattern id="ptAnimaux" x="0" y="0" width="8" height="6" patternUnits="userSpaceOnUse">
+          <line x1="2" y1="5" x2="1.5" y2="2.5" stroke="#8a7a3a" strokeWidth="0.5" opacity="0.4"/>
+          <line x1="2" y1="5" x2="2.5" y2="2.5" stroke="#8a7a3a" strokeWidth="0.5" opacity="0.4"/>
+          <line x1="6" y1="5" x2="5.5" y2="3" stroke="#8a7a3a" strokeWidth="0.5" opacity="0.4"/>
+          <line x1="6" y1="5" x2="6.5" y2="3" stroke="#8a7a3a" strokeWidth="0.5" opacity="0.4"/>
+        </pattern>
+
+        {/* Stockage — hachures diagonales */}
+        <pattern id="ptStockage" x="0" y="0" width="6" height="6" patternUnits="userSpaceOnUse">
+          <line x1="0" y1="6" x2="6" y2="0" stroke="#888" strokeWidth="0.5" opacity="0.35"/>
+          <line x1="-3" y1="6" x2="3" y2="0" stroke="#888" strokeWidth="0.5" opacity="0.35"/>
+          <line x1="3" y1="6" x2="9" y2="0" stroke="#888" strokeWidth="0.5" opacity="0.35"/>
+        </pattern>
+
+        {/* Transformation — croisillons */}
+        <pattern id="ptTransformation" x="0" y="0" width="6" height="6" patternUnits="userSpaceOnUse">
+          <line x1="0" y1="6" x2="6" y2="0" stroke="#cc8f3a" strokeWidth="0.4" opacity="0.3"/>
+          <line x1="0" y1="0" x2="6" y2="6" stroke="#cc8f3a" strokeWidth="0.4" opacity="0.3"/>
+        </pattern>
+
+        {/* Champignons — points épars */}
+        <pattern id="ptChampignons" x="0" y="0" width="8" height="6" patternUnits="userSpaceOnUse">
+          <circle cx="2" cy="2" r="1.2" fill="#7a5a9a" opacity="0.35"/>
+          <circle cx="6" cy="4.5" r="0.8" fill="#7a5a9a" opacity="0.3"/>
+        </pattern>
+
+        {/* Mellifères — nid d'abeilles */}
+        <pattern id="ptMelliferes" x="0" y="0" width="9" height="8" patternUnits="userSpaceOnUse">
+          <polygon points="4.5,1 7.5,3 7.5,5 4.5,7 1.5,5 1.5,3"
+            fill="none" stroke="#c8a820" strokeWidth="0.5" opacity="0.4"/>
+        </pattern>
       </defs>
 
       <rect width="830" height="420" fill="url(#isoSky)"/>
