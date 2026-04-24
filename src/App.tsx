@@ -123,17 +123,17 @@ const App: React.FC = () => {
         </h1>
 
         {/* Slider semaine */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '12px', color: '#555' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '12px', color: '#555', flexShrink: 0 }}>
           <span>Sem.</span>
           <input
             type="range" min={1} max={56} value={currentWeek}
             onChange={e => setCurrentWeek(Number(e.target.value))}
             style={{ width: '110px' }}
           />
-          <strong style={{ minWidth: '80px', fontWeight: 500, color: '#222' }}>
+          <strong style={{ width: '80px', flexShrink: 0, fontWeight: 500, color: '#222' }}>
             Semaine {currentWeek}
           </strong>
-          <span style={{ color: '#999', fontSize: '11px', whiteSpace: 'nowrap' }}>
+          <span style={{ width: '216px', flexShrink: 0, color: '#999', fontSize: '11px', whiteSpace: 'nowrap', overflow: 'hidden' }}>
             — {getSeason(currentWeek)}
           </span>
         </div>
