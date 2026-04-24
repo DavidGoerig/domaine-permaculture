@@ -1,5 +1,5 @@
 import React from 'react';
-import type { Zone, ZoneType, Plant } from '../types/domain';
+import type { Zone, ZoneType, Plant, Flow } from '../types/domain';
 
 /* ── Projection ─────────────────────────────────────────────────────────── */
 const SC = 0.46;
@@ -33,6 +33,11 @@ const ZONE_COLORS: Record<ZoneType, { fill: string; stroke: string }> = {
   'mellifères':   { fill: '#fdf4c0', stroke: '#c8a820' },
 };
 
+const FLOW_COLORS: Record<string, string> = {
+  water: '#3B8BD4', fertility: '#639922', cuisine: '#E8593C',
+  animals: '#EF9F27', transformation: '#7a5a9a',
+};
+
 const CATEGORY_COLORS: Record<string, string> = {
   'légume-feuille': '#3aaa5a', 'légume-racine': '#cc8f3a',
   'légume-fruit':   '#E8593C', 'légumineuse':   '#639922',
@@ -64,6 +69,8 @@ const ZONE_PATTERN: Partial<Record<ZoneType, string>> = {
 interface Props {
   zones: Zone[];
   plants?: Plant[];
+  flows?: Flow[];
+  showFlows?: boolean;
   selectedZoneId: string | null;
   selectedItemId?: string | null;
   onSelect: (id: string | null) => void;
@@ -72,7 +79,7 @@ interface Props {
 
 /* ── Component ───────────────────────────────────────────────────────────── */
 const IsometricMap: React.FC<Props> = ({
-  zones, plants = [], selectedZoneId, selectedItemId, onSelect, onItemSelect,
+  zones, plants = [], flows = [], showFlows = false, selectedZoneId, selectedItemId, onSelect, onItemSelect,
 }) => {
   // Override champignons_haie to full visual extent (matches FarmMap custom band)
   const zonesEff = zones.map(z =>
@@ -277,6 +284,47 @@ const IsometricMap: React.FC<Props> = ({
     );
   }
 
+  /* ── Flows render ───────────────────────────────────────────────────── */
+  function renderFlows() {
+    const zoneMap = new Map(zonesEff.map(z => [z.id, z]));
+    const elems: React.ReactNode[] = [];
+
+    flows.forEach(flow => {
+      if (!flow.fromZoneId || !flow.toZoneId) return;
+      const from = zoneMap.get(flow.fromZoneId);
+      const to   = zoneMap.get(flow.toZoneId);
+      if (!from || !to) return;
+
+      const isHedgeFrom = from.id.startsWith('haie');
+      const isHedgeTo   = to.id.startsWith('haie');
+      const hzFrom = isHedgeFrom ? 0 : (HEIGHTS[from.type] ?? 10);
+      const hzTo   = isHedgeTo   ? 0 : (HEIGHTS[to.type]   ?? 10);
+
+      const [fx, fy_g] = iso(from.x + from.width / 2, from.y + from.height / 2);
+      const fy = fy_g - hzFrom;
+      const [tx, ty_g] = iso(to.x + to.width / 2, to.y + to.height / 2);
+      const ty = ty_g - hzTo;
+
+      const color = FLOW_COLORS[flow.type] ?? '#888';
+      const markerId = `arrowIso-${flow.type}`;
+
+      elems.push(
+        <line
+          key={flow.id}
+          x1={fx} y1={fy}
+          x2={tx} y2={ty}
+          stroke={color}
+          strokeWidth={1.2}
+          opacity={0.75}
+          strokeDasharray="4 2"
+          markerEnd={`url(#${markerId})`}
+        />
+      );
+    });
+
+    return <g pointerEvents="none">{elems}</g>;
+  }
+
   /* ── SVG ─────────────────────────────────────────────────────────────── */
   return (
     <svg viewBox="0 0 830 420" style={{ display: 'block', width: '100%', minWidth: '520px' }}
@@ -301,6 +349,19 @@ const IsometricMap: React.FC<Props> = ({
           <stop offset="0%"   stopColor="#b8d890"/>
           <stop offset="100%" stopColor="#90b860"/>
         </linearGradient>
+
+        {/* Flow arrow markers — one per flow type */}
+        {(Object.entries(FLOW_COLORS) as [string, string][]).map(([type, color]) => (
+          <marker
+            key={type}
+            id={`arrowIso-${type}`}
+            markerWidth="6" markerHeight="6"
+            refX="5" refY="3"
+            orient="auto"
+          >
+            <path d="M0,0 L0,6 L6,3 z" fill={color} opacity={0.85}/>
+          </marker>
+        ))}
 
         {/* Habitat — briques */}
         <pattern id="ptHabitat" x="0" y="0" width="9" height="5" patternUnits="userSpaceOnUse">
@@ -394,6 +455,9 @@ const IsometricMap: React.FC<Props> = ({
         fill="url(#isoGround)" opacity="0.28"/>
 
       {sorted.map(zone => renderZone(zone))}
+
+      {/* Flows — rendered above zones */}
+      {showFlows && renderFlows()}
 
       {/* Compass — isométrique (axes alignés sur la projection) */}
       {/* N: upper-right [+0.895, -0.447], E: lower-right [+0.895, +0.447] */}

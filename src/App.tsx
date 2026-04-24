@@ -74,6 +74,7 @@ const App: React.FC = () => {
   const [activeTab, setActiveTab] = useState<RightTab>('zone');
   const [mapView, setMapView] = useState<MapView>('zones');
   const [filterByZone, setFilterByZone] = useState(false);
+  const [showIsoFlows, setShowIsoFlows] = useState(false);
 
   // Item selection (plant / animal / mushroom clicked on map)
   const [selectedItemId, setSelectedItemId] = useState<string | null>(null);
@@ -183,6 +184,8 @@ const App: React.FC = () => {
             <IsometricMap
               zones={zones}
               plants={plants}
+              flows={flows}
+              showFlows={showIsoFlows}
               selectedZoneId={selectedZoneId}
               selectedItemId={selectedItemId}
               onSelect={handleZoneSelect}
@@ -309,6 +312,29 @@ const App: React.FC = () => {
                       {FLOW_LABELS[key]}
                     </label>
                   ))}
+                </div>
+              )}
+
+              {/* Toggle flux 3D (vue isométrique) */}
+              {mapView === 'isometrique' && (
+                <div style={{ padding: '8px 12px', borderTop: '1px solid #eee', background: '#fafafa', flexShrink: 0 }}>
+                  <button
+                    onClick={() => setShowIsoFlows(v => !v)}
+                    style={{
+                      width: '100%',
+                      padding: '5px 8px',
+                      fontSize: '11px',
+                      fontWeight: showIsoFlows ? 600 : 400,
+                      color: showIsoFlows ? '#fff' : '#555',
+                      background: showIsoFlows ? '#3B8BD4' : '#eee',
+                      border: 'none',
+                      borderRadius: '4px',
+                      cursor: 'pointer',
+                      transition: 'all 0.15s',
+                    }}
+                  >
+                    Flux 3D
+                  </button>
                 </div>
               )}
             </>
