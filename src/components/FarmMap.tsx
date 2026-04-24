@@ -869,7 +869,7 @@ const FarmMap: React.FC<Props> = ({
       })()}
 
       {/* Légende */}
-      <rect x="10" y="704" width="590" height="22" rx="4" fill="#fff" opacity="0.85"/>
+      <rect x="10" y="704" width="740" height="22" rx="4" fill="#fff" opacity="0.85"/>
 
       {viewMode === 'zones' ? (
         /* Légende flux */
