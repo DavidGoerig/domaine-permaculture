@@ -5,7 +5,7 @@ import type { Zone, ZoneType, Plant, Flow } from '../types/domain';
 const SC = 0.46;
 const OX = 415;
 const OY = 20;
-const ISO_ANGLE = Math.atan2(SC * 0.5, SC) * (180 / Math.PI); // ≈ 26.57° axe est-ouest iso
+const ISO_ANGLE = Math.atan2(SC * 0.5, SC) * (180 / Math.PI);
 
 const MAX_X = 714;
 const MAX_Y = 692;
@@ -17,10 +17,14 @@ function pts(points: [number, number][]): string {
   return points.map(([x, y]) => `${x.toFixed(1)},${y.toFixed(1)}`).join(' ');
 }
 
-/* ── Heights (SVG px above ground) ─────────────────────────────────────── */
-const HEIGHTS: Partial<Record<ZoneType, number>> = {
-  habitat: 46, stockage: 34, transformation: 26, animaux: 24,
-  verger: 20, champignons: 16, eau: 14, 'maraîchage': 10, 'mellifères': 8,
+/* ── Voxel grid ──────────────────────────────────────────────────────────── */
+const VOXEL_SIZE = 24; // world units per voxel cell
+const VOXEL_H    = 8;  // screen pixels per voxel layer
+
+const VOXEL_LAYERS: Partial<Record<ZoneType, number>> = {
+  habitat: 4, transformation: 3, stockage: 3,
+  animaux: 2, verger: 2, champignons: 2, eau: 2,
+  'maraîchage': 1, 'mellifères': 1,
 };
 
 /* ── Colors ─────────────────────────────────────────────────────────────── */
@@ -41,32 +45,211 @@ const FLOW_COLORS: Record<string, string> = {
   animals: '#EF9F27', transformation: '#7a5a9a',
 };
 
-const CATEGORY_COLORS: Record<string, string> = {
-  'légume-feuille': '#3aaa5a', 'légume-racine': '#cc8f3a',
-  'légume-fruit':   '#E8593C', 'légumineuse':   '#639922',
-  'aromatique':     '#7a5a9a', 'fruit':          '#EF9F27',
-  'vivace':         '#3B8BD4', 'engrais-vert':   '#a0c840',
-  'sauvage':        '#5a8a3a', 'mellifère':      '#f0a800',
-  'champignon':     '#8a6a6a',
-};
-
 function darken(hex: string, f: number): string {
   const h = hex.replace('#', '');
   return `rgb(${Math.round(parseInt(h.slice(0,2),16)*f)},${Math.round(parseInt(h.slice(2,4),16)*f)},${Math.round(parseInt(h.slice(4,6),16)*f)})`;
 }
-function lighten(hex: string, f: number): string {
-  const h = hex.replace('#', '');
-  const c = (s: string) => Math.min(255, Math.round(parseInt(s,16) + (255-parseInt(s,16))*f));
-  return `rgb(${c(h.slice(0,2))},${c(h.slice(2,4))},${c(h.slice(4,6))})`;
+
+// Deterministic per-voxel color variation for a Minecraft-like texture
+function voxelShade(fill: string, gx: number, gy: number, bonus: number = 0): string {
+  const seed  = (gx * 7 + gy * 13) % 16;
+  const delta = (seed - 8) * 1.8 + bonus;
+  const h = fill.replace('#', '');
+  const r = Math.min(255, Math.max(0, parseInt(h.slice(0,2), 16) + delta));
+  const g = Math.min(255, Math.max(0, parseInt(h.slice(2,4), 16) + delta));
+  const b = Math.min(255, Math.max(0, parseInt(h.slice(4,6), 16) + delta));
+  return `rgb(${Math.round(r)},${Math.round(g)},${Math.round(b)})`;
 }
 
-/* ── Texture pattern IDs ────────────────────────────────────────────────── */
-const ZONE_PATTERN: Partial<Record<ZoneType, string>> = {
-  habitat: 'ptHabitat', eau: 'ptEau', 'maraîchage': 'ptMaraichage',
-  verger: 'ptVerger', animaux: 'ptAnimaux', stockage: 'ptStockage',
-  transformation: 'ptTransformation', champignons: 'ptChampignons',
-  'mellifères': 'ptMelliferes',
-};
+/* ── Voxel face motifs ───────────────────────────────────────────────────── */
+// Each motif is rendered in flat screen space centered at (cx, cy), size ~s px
+function VoxelMotif({ type, zoneId, cx, cy, s }: {
+  type: ZoneType; zoneId: string; cx: number; cy: number; s: number;
+}) {
+  const sw = 0.55;
+  switch (type) {
+    case 'habitat':
+      // House: roof triangle + rectangle body
+      return (
+        <g pointerEvents="none" opacity={0.72}>
+          <polygon points={`${cx},${cy - s * 0.72} ${cx - s * 0.55},${cy - s * 0.15} ${cx + s * 0.55},${cy - s * 0.15}`}
+            fill="#c09060" stroke="#a07040" strokeWidth={sw}/>
+          <rect x={cx - s * 0.38} y={cy - s * 0.15} width={s * 0.76} height={s * 0.6}
+            fill="#d4c5a9" stroke="#a89070" strokeWidth={sw}/>
+          <rect x={cx - s * 0.13} y={cy + s * 0.05} width={s * 0.26} height={s * 0.38}
+            fill="#a89070" stroke="none"/>
+        </g>
+      );
+
+    case 'eau':
+      if (zoneId === 'aquaponie') return (
+        // Fish silhouette
+        <g pointerEvents="none" opacity={0.75}>
+          <ellipse cx={cx} cy={cy} rx={s * 0.48} ry={s * 0.22} fill="#5ba8d4" stroke="#3a90c0" strokeWidth={sw}/>
+          <polygon points={`${cx + s * 0.45},${cy - s * 0.22} ${cx + s * 0.8},${cy} ${cx + s * 0.45},${cy + s * 0.22}`}
+            fill="#5ba8d4" stroke="#3a90c0" strokeWidth={sw}/>
+          <circle cx={cx - s * 0.22} cy={cy - s * 0.05} r={s * 0.07} fill="#fff" opacity={0.9}/>
+        </g>
+      );
+      // Water tank / barrel
+      return (
+        <g pointerEvents="none" opacity={0.75}>
+          <ellipse cx={cx} cy={cy - s * 0.25} rx={s * 0.38} ry={s * 0.15} fill="#8ecae6" stroke="#3a90c0" strokeWidth={sw}/>
+          <rect x={cx - s * 0.38} y={cy - s * 0.25} width={s * 0.76} height={s * 0.65}
+            fill="#8ecae6" stroke="#3a90c0" strokeWidth={sw}/>
+          <ellipse cx={cx} cy={cy + s * 0.4} rx={s * 0.38} ry={s * 0.15} fill="#7abcd4" stroke="#3a90c0" strokeWidth={sw}/>
+          <line x1={cx - s * 0.38} y1={cy + 0.04} x2={cx + s * 0.38} y2={cy + 0.04} stroke="#3a90c0" strokeWidth={sw} opacity={0.5}/>
+        </g>
+      );
+
+    case 'maraîchage': {
+      // Rows of small plants
+      const cols3 = [-1, 0, 1];
+      return (
+        <g pointerEvents="none" opacity={0.82}>
+          {cols3.map(i => (
+            <g key={i}>
+              <line x1={cx + i * s * 0.35} y1={cy + s * 0.42} x2={cx + i * s * 0.35} y2={cy - s * 0.18} stroke="#3aaa5a" strokeWidth={sw}/>
+              <ellipse cx={cx + i * s * 0.35} cy={cy - s * 0.3} rx={s * 0.16} ry={s * 0.22} fill="#3aaa5a" opacity={0.85}/>
+            </g>
+          ))}
+        </g>
+      );
+    }
+
+    case 'verger':
+      // Tree canopy + trunk
+      return (
+        <g pointerEvents="none" opacity={0.82}>
+          <line x1={cx} y1={cy + s * 0.45} x2={cx} y2={cy + s * 0.05} stroke="#7a5a2a" strokeWidth={sw * 1.2}/>
+          <circle cx={cx} cy={cy - s * 0.15} r={s * 0.42} fill="#3a8a2a" opacity={0.85}/>
+          <circle cx={cx - s * 0.18} cy={cy - s * 0.28} r={s * 0.18} fill="#2a6a1a" opacity={0.45}/>
+        </g>
+      );
+
+    case 'animaux':
+      if (zoneId === 'poulailler') return (
+        // Hen: body + head + beak
+        <g pointerEvents="none" opacity={0.82}>
+          <ellipse cx={cx} cy={cy + s * 0.1} rx={s * 0.4} ry={s * 0.3} fill="#f0c060" stroke="#cc9a3a" strokeWidth={sw}/>
+          <circle cx={cx + s * 0.38} cy={cy - s * 0.22} r={s * 0.2} fill="#f0c060" stroke="#cc9a3a" strokeWidth={sw}/>
+          <polygon points={`${cx + s * 0.56},${cy - s * 0.22} ${cx + s * 0.72},${cy - s * 0.3} ${cx + s * 0.72},${cy - s * 0.14}`}
+            fill="#e8a020"/>
+          <rect x={cx + s * 0.3} y={cy - s * 0.38} width={s * 0.22} height={s * 0.12} rx={s * 0.04} fill="#e04040"/>
+        </g>
+      );
+      // Cow: body + head + spots
+      return (
+        <g pointerEvents="none" opacity={0.82}>
+          <ellipse cx={cx} cy={cy + s * 0.1} rx={s * 0.52} ry={s * 0.3} fill="#f5f0e8" stroke="#999" strokeWidth={sw}/>
+          <circle cx={cx + s * 0.46} cy={cy - s * 0.15} r={s * 0.22} fill="#f5f0e8" stroke="#999" strokeWidth={sw}/>
+          <ellipse cx={cx - s * 0.1} cy={cy + s * 0.05} rx={s * 0.18} ry={s * 0.18} fill="#555" opacity={0.3}/>
+          <ellipse cx={cx + s * 0.22} cy={cy + s * 0.22} rx={s * 0.12} ry={s * 0.12} fill="#555" opacity={0.3}/>
+        </g>
+      );
+
+    case 'stockage':
+      if (zoneId === 'serre_semis') return (
+        // Greenhouse: arch + panes
+        <g pointerEvents="none" opacity={0.75}>
+          <path d={`M${cx - s * 0.52},${cy + s * 0.38} Q${cx - s * 0.52},${cy - s * 0.55} ${cx},${cy - s * 0.55} Q${cx + s * 0.52},${cy - s * 0.55} ${cx + s * 0.52},${cy + s * 0.38}`}
+            fill="#d0f0e8" stroke="#888" strokeWidth={sw} opacity={0.85}/>
+          <line x1={cx} y1={cy - s * 0.55} x2={cx} y2={cy + s * 0.38} stroke="#999" strokeWidth={sw}/>
+          <line x1={cx - s * 0.52} y1={cy - s * 0.05} x2={cx + s * 0.52} y2={cy - s * 0.05} stroke="#999" strokeWidth={sw}/>
+        </g>
+      );
+      if (zoneId === 'sechoir') return (
+        // Solar dryer: panel + vents
+        <g pointerEvents="none" opacity={0.75}>
+          <rect x={cx - s * 0.5} y={cy - s * 0.5} width={s} height={s * 0.7} rx={s * 0.05}
+            fill="#1a1a3a" stroke="#555" strokeWidth={sw}/>
+          {[-0.3, 0, 0.3].map(i => (
+            <line key={i} x1={cx + i * s * 0.28} y1={cy + s * 0.35} x2={cx + i * s * 0.28} y2={cy + s * 0.65}
+              stroke="#888" strokeWidth={sw}/>
+          ))}
+        </g>
+      );
+      // Hangar / stockage: box with door
+      return (
+        <g pointerEvents="none" opacity={0.75}>
+          <rect x={cx - s * 0.5} y={cy - s * 0.38} width={s} height={s * 0.76}
+            fill="#d8d8d8" stroke="#888" strokeWidth={sw}/>
+          <polygon points={`${cx - s * 0.5},${cy - s * 0.38} ${cx},${cy - s * 0.68} ${cx + s * 0.5},${cy - s * 0.38}`}
+            fill="#c0c0c0" stroke="#888" strokeWidth={sw}/>
+          <rect x={cx - s * 0.15} y={cy + s * 0.0} width={s * 0.3} height={s * 0.38}
+            fill="#aaa" stroke="none"/>
+        </g>
+      );
+
+    case 'transformation':
+      if (zoneId === 'cave') return (
+        // Root cellar: arch door + stone texture
+        <g pointerEvents="none" opacity={0.75}>
+          <rect x={cx - s * 0.5} y={cy - s * 0.2} width={s} height={s * 0.62}
+            fill="#c8b89a" stroke="#a89070" strokeWidth={sw}/>
+          <path d={`M${cx - s * 0.24},${cy + s * 0.42} L${cx - s * 0.24},${cy - s * 0.02} Q${cx},${cy - s * 0.38} ${cx + s * 0.24},${cy - s * 0.02} L${cx + s * 0.24},${cy + s * 0.42}`}
+            fill="#444" stroke="#333" strokeWidth={sw}/>
+        </g>
+      );
+      if (zoneId === 'fromagerie') return (
+        // Cheese wheel
+        <g pointerEvents="none" opacity={0.78}>
+          <ellipse cx={cx} cy={cy} rx={s * 0.46} ry={s * 0.3} fill="#f5e090" stroke="#cc8f3a" strokeWidth={sw}/>
+          <ellipse cx={cx} cy={cy - s * 0.28} rx={s * 0.46} ry={s * 0.3} fill="#fdf4c0" stroke="#cc8f3a" strokeWidth={sw}/>
+          <line x1={cx - s * 0.46} y1={cy} x2={cx - s * 0.46} y2={cy - s * 0.28} stroke="#cc8f3a" strokeWidth={sw}/>
+          <line x1={cx + s * 0.46} y1={cy} x2={cx + s * 0.46} y2={cy - s * 0.28} stroke="#cc8f3a" strokeWidth={sw}/>
+        </g>
+      );
+      // Generic kitchen pot
+      return (
+        <g pointerEvents="none" opacity={0.75}>
+          <ellipse cx={cx} cy={cy + s * 0.22} rx={s * 0.42} ry={s * 0.18} fill="#e0a060" stroke="#cc8f3a" strokeWidth={sw}/>
+          <rect x={cx - s * 0.42} y={cy - s * 0.28} width={s * 0.84} height={s * 0.5}
+            fill="#f5c98a" stroke="#cc8f3a" strokeWidth={sw}/>
+          <ellipse cx={cx} cy={cy - s * 0.28} rx={s * 0.42} ry={s * 0.18} fill="#fde0b0" stroke="#cc8f3a" strokeWidth={sw}/>
+          <line x1={cx - s * 0.55} y1={cy - s * 0.15} x2={cx - s * 0.42} y2={cy - s * 0.15} stroke="#cc8f3a" strokeWidth={sw * 1.3}/>
+          <line x1={cx + s * 0.42} y1={cy - s * 0.15} x2={cx + s * 0.55} y2={cy - s * 0.15} stroke="#cc8f3a" strokeWidth={sw * 1.3}/>
+        </g>
+      );
+
+    case 'champignons': {
+      // Mushroom: dome cap + stipe
+      const seed2 = (zoneId.length + 3) % 3;
+      const capColor = ['#c8a0d8', '#b890c8', '#d8b0e8'][seed2];
+      return (
+        <g pointerEvents="none" opacity={0.82}>
+          <line x1={cx} y1={cy + s * 0.45} x2={cx} y2={cy + s * 0.05} stroke="#d4c8c0" strokeWidth={sw * 1.2}/>
+          <ellipse cx={cx} cy={cy + s * 0.02} rx={s * 0.44} ry={s * 0.14} fill={capColor} opacity={0.5}/>
+          <path d={`M${cx - s * 0.44},${cy + s * 0.02} Q${cx - s * 0.44},${cy - s * 0.52} ${cx},${cy - s * 0.52} Q${cx + s * 0.44},${cy - s * 0.52} ${cx + s * 0.44},${cy + s * 0.02}`}
+            fill={capColor} stroke="#7a5a9a" strokeWidth={sw}/>
+          <ellipse cx={cx} cy={cy - s * 0.5} rx={s * 0.44} ry={s * 0.1} fill={capColor} opacity={0.7}/>
+        </g>
+      );
+    }
+
+    case 'mellifères': {
+      // Warré beehive: stacked boxes
+      const stackY = [0, s * 0.3, s * 0.6];
+      return (
+        <g pointerEvents="none" opacity={0.82}>
+          {stackY.map((dy, i) => (
+            <rect key={i} x={cx - s * 0.38} y={cy - s * 0.6 + dy} width={s * 0.76} height={s * 0.28}
+              fill={`hsl(45,70%,${72 - i * 6}%)`} stroke="#c8a820" strokeWidth={sw}/>
+          ))}
+          <line x1={cx - s * 0.38} y1={cy + s * 0.32} x2={cx + s * 0.38} y2={cy + s * 0.32}
+            stroke="#c8a820" strokeWidth={sw * 0.7}/>
+          {/* Bee dots */}
+          {[[-0.28, -0.72], [0.18, -0.78], [-0.05, -0.85]].map(([bx, by], i) => (
+            <circle key={i} cx={cx + bx * s} cy={cy + by * s} r={s * 0.06} fill="#f0a800" opacity={0.9}/>
+          ))}
+        </g>
+      );
+    }
+
+    default:
+      return null;
+  }
+}
 
 /* ── Props ───────────────────────────────────────────────────────────────── */
 interface Props {
@@ -83,13 +266,12 @@ interface Props {
   onRotate?: (r: 0 | 1 | 2 | 3) => void;
 }
 
-
 /* ── Component ───────────────────────────────────────────────────────────── */
 const IsometricMap: React.FC<Props> = ({
-  zones, plants = [], flows = [], showFlows = false, selectedZoneId, selectedItemId, onSelect, onItemSelect,
+  zones, flows = [], showFlows = false,
+  selectedZoneId, onSelect,
   visibleTypes, rotation, onRotate,
 }) => {
-  // Rotated projection
   function isoR(wx: number, wy: number): [number, number] {
     switch (rotation ?? 0) {
       case 1: return iso(MAX_Y - wy, wx);
@@ -102,141 +284,137 @@ const IsometricMap: React.FC<Props> = ({
   const rot = rotation ?? 0;
   const [selectedFlowId, setSelectedFlowId] = useState<string | null>(null);
 
-  // Override champignons_haie to full visual extent (matches FarmMap custom band)
   const zonesEff = zones.map(z =>
     z.id === 'champignons_haie' ? { ...z, x: 626, y: 178, width: 88, height: 510 } : z
   );
 
-  // Painter's algorithm — sort key depends on rotation; haies always first
-  const isoDepth = (z: Zone): number => {
-    if (z.id.startsWith('haie')) return -1e9;
-    switch (rot) {
-      case 1: return (z.x + z.width) - z.y;
-      case 2: return -(z.x + z.y);
-      case 3: return (z.y + z.height) - z.x;
-      default: return z.x + z.width + z.y + z.height;
-    }
-  };
-  const sorted = [...zonesEff].sort((a, b) => isoDepth(a) - isoDepth(b));
-
-  // Filter by visible types
-  const visible = sorted.filter(z => !visibleTypes || visibleTypes.has(z.type));
+  const visible = zonesEff.filter(z => !visibleTypes || visibleTypes.has(z.type));
 
   const viewBox = '0 0 830 420';
 
-  // Label angle follows east-west axis of current rotation
   const labelAngle = (type: ZoneType): number => {
     const isNS = type === 'champignons';
-    const base = rot % 2 === 0 ? ISO_ANGLE : -ISO_ANGLE;
+    const base  = rot % 2 === 0 ? ISO_ANGLE : -ISO_ANGLE;
     return isNS ? -base : base;
   };
 
-  /* ── Plant strips on top face ─────────────────────────────────────────── */
-  function renderPlantStrips(zone: Zone, lift: number = 0) {
-    const { x, y, width: w, height: h, id, type } = zone;
-    const colors = ZONE_COLORS[type] ?? { fill: '#ddd', stroke: '#999' };
+  /* ── Voxel depth sort key ────────────────────────────────────────────── */
+  function voxelSortKey(wx: number, wy: number, vw: number, vh: number): number {
+    switch (rot) {
+      case 1: return (wx + vw) - wy;
+      case 2: return -wx - wy;
+      case 3: return (wy + vh) - wx;
+      default: return wx + wy;
+    }
+  }
+
+  /* ── Build + sort all voxels ─────────────────────────────────────────── */
+  interface VoxelData {
+    key: string;
+    wx: number; wy: number; vw: number; vh: number;
+    fill: string; stroke: string; hz: number;
+    zoneId: string; type: ZoneType;
+    sortKey: number;
+    isSelected: boolean;
+    gx: number; gy: number;
+    isHedge: boolean;
+  }
+
+  const allVoxels: VoxelData[] = [];
+
+  for (const zone of visible) {
+    const { x, y, width: w, height: h, type, id } = zone;
+    const isHedge   = id.startsWith('haie');
     const isSelected = id === selectedZoneId;
-    const strokeCol  = isSelected ? '#1a1a1a' : colors.stroke;
-    const sw         = isSelected ? 2 : 0.7;
+    const colors    = ZONE_COLORS[type] ?? { fill: '#ddd', stroke: '#999' };
+    const layers    = isHedge ? 0 : (VOXEL_LAYERS[type] ?? 1);
+    const hz        = layers * VOXEL_H;
 
-    const buildingTypes: ZoneType[] = ['habitat', 'transformation', 'stockage'];
-    const zonePlants = buildingTypes.includes(type)
-      ? []
-      : plants.filter(p => p.zones.includes(id));
-    const lp = ([sx, sy]: [number, number]): [number, number] => [sx, sy - lift];
-    const TL = lp(isoR(x,     y    ));
-    const TR = lp(isoR(x + w, y    ));
-    const BR = lp(isoR(x + w, y + h));
-    const BL = lp(isoR(x,     y + h));
+    const cols = Math.max(1, Math.round(w / VOXEL_SIZE));
+    const rows = Math.max(1, Math.round(h / VOXEL_SIZE));
+    const vw   = w / cols;
+    const vh   = h / rows;
 
-    if (zonePlants.length === 0) {
-      const patId = ZONE_PATTERN[type];
-      return (
-        <g>
-          <polygon points={pts([TL, TR, BR, BL])}
-            fill={isSelected ? lighten(colors.fill, 0.22) : colors.fill}
-            stroke={strokeCol} strokeWidth={sw} strokeLinejoin="round"/>
-          {patId && (
-            <polygon points={pts([TL, TR, BR, BL])}
-              fill={`url(#${patId})`} opacity={0.75}
-              stroke="none" pointerEvents="none"/>
-          )}
-        </g>
-      );
+    for (let gy = 0; gy < rows; gy++) {
+      for (let gx = 0; gx < cols; gx++) {
+        const wx = x + gx * vw;
+        const wy = y + gy * vh;
+        let sk   = voxelSortKey(wx, wy, vw, vh);
+        if (isHedge) sk -= 1e9;
+
+        allVoxels.push({
+          key: `${id}-${gx}-${gy}`,
+          wx, wy, vw, vh,
+          fill: colors.fill, stroke: colors.stroke, hz,
+          zoneId: id, type, sortKey: sk,
+          isSelected, gx, gy, isHedge,
+        });
+      }
+    }
+  }
+
+  allVoxels.sort((a, b) => a.sortKey - b.sortKey);
+
+  /* ── Render one voxel ────────────────────────────────────────────────── */
+  function renderVoxel(v: VoxelData) {
+    const { wx, wy, vw, vh, fill, stroke, hz, zoneId, type, isSelected, gx, gy, isHedge } = v;
+
+    const TL = isoR(wx,      wy);
+    const TR = isoR(wx + vw, wy);
+    const BR = isoR(wx + vw, wy + vh);
+    const BL = isoR(wx,      wy + vh);
+
+    const TL_top: [number,number] = [TL[0], TL[1] - hz];
+    const TR_top: [number,number] = [TR[0], TR[1] - hz];
+    const BR_top: [number,number] = [BR[0], BR[1] - hz];
+    const BL_top: [number,number] = [BL[0], BL[1] - hz];
+
+    const sw        = isSelected ? 1.2 : 0.35;
+    const strokeCol = isSelected ? '#111' : stroke;
+    const topFill   = voxelShade(fill, gx, gy, isSelected ? 28 : 0);
+
+    type Wall = [number,number][];
+    let wall1: Wall, wall2: Wall;
+    switch (rot) {
+      case 1: wall1 = [TR,BR,BR_top,TR_top]; wall2 = [TL,TR,TR_top,TL_top]; break;
+      case 2: wall1 = [TL,TR,TR_top,TL_top]; wall2 = [TL,BL,BL_top,TL_top]; break;
+      case 3: wall1 = [BL,BR,BR_top,BL_top]; wall2 = [TL,BL,BL_top,TL_top]; break;
+      default: wall1 = [BL,BR,BR_top,BL_top]; wall2 = [BR,TR,TR_top,BR_top];
     }
 
-    const totalYield = Math.max(1, zonePlants.reduce((s, p) => s + p.yieldKgPerM2, 0));
-
-    // Raw sizes with per-plant minimum, then normalize so total = exactly h
-    const minPerStrip = h / zonePlants.length;
-    const rawSizes = zonePlants.map(p =>
-      Math.max(minPerStrip, (p.yieldKgPerM2 / totalYield) * h)
-    );
-    const totalRaw = rawSizes.reduce((s, v) => s + v, 0);
-
-    const strips: { plant: Plant; y0: number; y1: number }[] = [];
-    let yOff = y;
-    for (let i = 0; i < zonePlants.length; i++) {
-      const sh = (rawSizes[i] / totalRaw) * h;
-      strips.push({ plant: zonePlants[i], y0: yOff, y1: yOff + sh });
-      yOff += sh;
-    }
-
-    const patId = ZONE_PATTERN[type];
     return (
-      <g>
-        {/* base fill + texture */}
-        <polygon points={pts([TL, TR, BR, BL])}
-          fill={isSelected ? lighten(colors.fill, 0.22) : colors.fill}
-          stroke="none"/>
-        {patId && (
-          <polygon points={pts([TL, TR, BR, BL])}
-            fill={`url(#${patId})`} opacity={0.5}
-            stroke="none" pointerEvents="none"/>
+      <g key={v.key}
+        onClick={e => { e.stopPropagation(); onSelect(zoneId); }}
+        style={{ cursor: 'pointer' }}
+        opacity={isHedge ? 0.55 : 1}>
+        {hz > 0 && (
+          <polygon points={pts(wall1)}
+            fill={darken(fill, isSelected ? 0.75 : 0.68)}
+            stroke={strokeCol} strokeWidth={sw} strokeLinejoin="round"/>
         )}
-        {strips.map(({ plant: p, y0, y1 }) => {
-          const sTL = lp(isoR(x,     y0));
-          const sTR = lp(isoR(x + w, y0));
-          const sBR = lp(isoR(x + w, y1));
-          const sBL = lp(isoR(x,     y1));
-          const isSelItem = p.id === selectedItemId;
-          const [scx, scy_g] = isoR(x + w / 2, (y0 + y1) / 2);
-          const scy = scy_g - lift;
-          const stripH = (y1 - y0) * SC * 0.5;
-          const isoW = Math.abs(TR[0] - TL[0]);
+        {hz > 0 && (
+          <polygon points={pts(wall2)}
+            fill={darken(fill, isSelected ? 0.60 : 0.52)}
+            stroke={strokeCol} strokeWidth={sw} strokeLinejoin="round"/>
+        )}
+        <polygon points={pts([TL_top, TR_top, BR_top, BL_top])}
+          fill={topFill}
+          stroke={strokeCol} strokeWidth={sw} strokeLinejoin="round"/>
+        {/* Motif on top face — centered, not clipped to face (small enough to stay inside) */}
+        {!isHedge && (() => {
+          const [mcx, mcy_g] = isoR(wx + vw / 2, wy + vh / 2);
+          const mcy = mcy_g - hz;
+          const motifSize = Math.min(vw, vh) * SC * 0.78;
           return (
-            <g key={p.id}
-              onClick={e => { e.stopPropagation(); onItemSelect?.(p.id, 'plant'); }}
-              style={{ cursor: 'pointer' }}>
-              <polygon
-                points={pts([sTL, sTR, sBR, sBL])}
-                fill={CATEGORY_COLORS[p.category] ?? '#888'}
-                opacity={isSelItem ? 1 : 0.85}
-                stroke="rgba(255,255,255,0.7)"
-                strokeWidth={isSelItem ? 1.2 : 0.6}
-              />
-              {isoW >= 20 && (
-                <text x={scx} y={scy} textAnchor="middle" dominantBaseline="middle"
-                  fontSize={stripH >= 7 ? 5.5 : stripH >= 5 ? 4.5 : 3.8}
-                  fontFamily="system-ui" fill="#fff" fontWeight="600"
-                  transform={`rotate(${labelAngle(type).toFixed(2)}, ${scx.toFixed(1)}, ${scy.toFixed(1)})`}
-                  pointerEvents="none" style={{ userSelect: 'none' }}>
-                  {p.name}
-                </text>
-              )}
-              <title>{p.name} — {p.yieldKgPerM2} kg/m²</title>
-            </g>
+            <VoxelMotif type={type} zoneId={zoneId} cx={mcx} cy={mcy} s={motifSize}/>
           );
-        })}
-        {/* border on top */}
-        <polygon points={pts([TL, TR, BR, BL])}
-          fill="none" stroke={strokeCol} strokeWidth={sw} strokeLinejoin="round"/>
+        })()}
       </g>
     );
   }
 
-  /* ── Tree decorations ────────────────────────────────────────────────── */
-  function renderTrees(zone: Zone, lift: number = 0) {
+  /* ── Tree decorations above voxels ──────────────────────────────────── */
+  function renderTrees(zone: Zone, hz: number) {
     const { x, y, width: w, height: h, id } = zone;
     const cols   = Math.max(2, Math.floor(w / 48));
     const rows   = Math.max(2, Math.floor(h / 48));
@@ -249,8 +427,8 @@ const IsometricMap: React.FC<Props> = ({
         const [ix, iy] = isoR(wx, wy);
         elems.push(
           <g key={`t${r}-${c}`} pointerEvents="none">
-            <circle cx={ix} cy={iy - lift} r={radius}      fill="#3a8a2a" opacity="0.88"/>
-            <circle cx={ix} cy={iy - lift} r={radius * 0.5} fill="#2a6a1a" opacity="0.55"/>
+            <circle cx={ix} cy={iy - hz} r={radius}        fill="#3a8a2a" opacity="0.88"/>
+            <circle cx={ix} cy={iy - hz} r={radius * 0.5}  fill="#2a6a1a" opacity="0.55"/>
           </g>
         );
       }
@@ -258,82 +436,45 @@ const IsometricMap: React.FC<Props> = ({
     return <g pointerEvents="none">{elems}</g>;
   }
 
-  /* ── Zone render ─────────────────────────────────────────────────────── */
-  function renderZone(zone: Zone) {
-    const { x, y, width: w, height: h, type, id, name } = zone;
-    const isSelected = id === selectedZoneId;
-    const isHedge    = id.startsWith('haie');
-    const colors     = ZONE_COLORS[type] ?? { fill: '#ddd', stroke: '#999' };
-    const hz         = isHedge ? 0 : (HEIGHTS[type] ?? 10);
-    const sw         = isSelected ? 2 : 0.7;
-    const strokeCol  = isSelected ? '#1a1a1a' : colors.stroke;
+  /* ── Zone labels + tree decorations (above all voxels) ───────────────── */
+  function renderZoneOverlays() {
+    return visible.map(zone => {
+      const { x, y, width: w, height: h, type, id, name } = zone;
+      const isHedge   = id.startsWith('haie');
+      const layers    = isHedge ? 0 : (VOXEL_LAYERS[type] ?? 1);
+      const hz        = layers * VOXEL_H;
+      const [lcx, lcy_g] = isoR(x + w / 2, y + h / 2);
+      const lcy  = lcy_g - hz;
+      const isoW = Math.abs(isoR(x + w, y)[0] - isoR(x, y)[0]);
+      const isTree = (id === 'verger' || id === 'noyers');
 
-    const TL = isoR(x,     y);
-    const TR = isoR(x + w, y);
-    const BR = isoR(x + w, y + h);
-    const BL = isoR(x,     y + h);
-
-    // Top face lifted hz pixels above ground
-    const TL_top: [number, number] = [TL[0], TL[1] - hz];
-    const TR_top: [number, number] = [TR[0], TR[1] - hz];
-    const BR_top: [number, number] = [BR[0], BR[1] - hz];
-    const BL_top: [number, number] = [BL[0], BL[1] - hz];
-
-    // Visible walls depend on rotation: viewer at NE(0) SE(1) SW(2) NW(3)
-    type Wall = [number,number][];
-    let wall1: Wall, wall2: Wall;
-    switch (rot) {
-      case 1: wall1 = [TR,BR,BR_top,TR_top]; wall2 = [TL,TR,TR_top,TL_top]; break;
-      case 2: wall1 = [TL,TR,TR_top,TL_top]; wall2 = [TL,BL,BL_top,TL_top]; break;
-      case 3: wall1 = [BL,BR,BR_top,BL_top]; wall2 = [TL,BL,BL_top,TL_top]; break;
-      default: wall1 = [BL,BR,BR_top,BL_top]; wall2 = [BR,TR,TR_top,BR_top];
-    }
-
-    const [lcx, lcy_g] = isoR(x + w / 2, y + h / 2);
-    const lcy  = lcy_g - hz;
-    const isoW = Math.abs(TR[0] - TL[0]);
-    const buildingTypes: ZoneType[] = ['habitat', 'transformation', 'stockage'];
-    const hasPlants  = !buildingTypes.includes(type) && plants.some(p => p.zones.includes(id));
-    const isTree     = (id === 'verger' || id === 'noyers') && !hasPlants;
-
-    return (
-      <g key={id} onClick={e => { e.stopPropagation(); onSelect(id); }} style={{ cursor: 'pointer' }} opacity={isHedge ? 0.55 : 1}>
-        {hz > 0 && (
-          <polygon points={pts(wall1 as [number,number][])}
-            fill={darken(colors.fill, 0.68)} stroke={strokeCol} strokeWidth={sw} strokeLinejoin="round"/>
-        )}
-        {hz > 0 && (
-          <polygon points={pts(wall2 as [number,number][])}
-            fill={darken(colors.fill, 0.52)} stroke={strokeCol} strokeWidth={sw} strokeLinejoin="round"/>
-        )}
-        {/* Top face (with plant strips if applicable) */}
-        {renderPlantStrips(zone, hz)}
-        {/* Tree decorations */}
-        {isTree && renderTrees(zone, hz)}
-        {/* Label — only on zones without plant strips */}
-        {isoW >= 14 && !hasPlants && (
-          <text x={lcx} y={lcy} textAnchor="middle" dominantBaseline="middle"
-            fontSize={isoW > 80 ? 7.5 : isoW > 50 ? 6.5 : isoW > 30 ? 5.5 : 5}
-            fontFamily="system-ui" fill="#222" fontWeight={isSelected ? '700' : '500'}
-            transform={`rotate(${labelAngle(type).toFixed(2)}, ${lcx.toFixed(1)}, ${lcy.toFixed(1)})`}
-            pointerEvents="none" style={{ userSelect: 'none' }}>
-            {name}
-          </text>
-        )}
-        {zone.surfaceM2 && isoW >= 90 && !hasPlants && (
-          <text x={lcx} y={lcy + 8} textAnchor="middle" dominantBaseline="middle"
-            fontSize="5.5" fontFamily="system-ui" fill="#555"
-            transform={`rotate(${labelAngle(type).toFixed(2)}, ${lcx.toFixed(1)}, ${(lcy + 8).toFixed(1)})`}
-            pointerEvents="none" style={{ userSelect: 'none' }}>
-            {zone.surfaceM2.toLocaleString('fr')} m²
-          </text>
-        )}
-        <title>{name}{zone.surfaceM2 ? ` — ${zone.surfaceM2.toLocaleString('fr')} m²` : ''}</title>
-      </g>
-    );
+      return (
+        <g key={`overlay-${id}`}>
+          {isTree && renderTrees(zone, hz)}
+          {isoW >= 14 && (
+            <text x={lcx} y={lcy} textAnchor="middle" dominantBaseline="middle"
+              fontSize={isoW > 80 ? 7.5 : isoW > 50 ? 6.5 : isoW > 30 ? 5.5 : 5}
+              fontFamily="system-ui" fill="#222"
+              fontWeight={id === selectedZoneId ? '700' : '500'}
+              transform={`rotate(${labelAngle(type).toFixed(2)}, ${lcx.toFixed(1)}, ${lcy.toFixed(1)})`}
+              pointerEvents="none" style={{ userSelect: 'none' }}>
+              {name}
+            </text>
+          )}
+          {zone.surfaceM2 && isoW >= 90 && (
+            <text x={lcx} y={lcy + 8} textAnchor="middle" dominantBaseline="middle"
+              fontSize="5.5" fontFamily="system-ui" fill="#555"
+              transform={`rotate(${labelAngle(type).toFixed(2)}, ${lcx.toFixed(1)}, ${(lcy + 8).toFixed(1)})`}
+              pointerEvents="none" style={{ userSelect: 'none' }}>
+              {zone.surfaceM2.toLocaleString('fr')} m²
+            </text>
+          )}
+        </g>
+      );
+    });
   }
 
-  /* ── Compass labels by rotation ──────────────────────────────────────── */
+  /* ── Compass ─────────────────────────────────────────────────────────── */
   const compassLabels = [
     { NE: 'N', SE: 'E', SW: 'S', NW: 'O', front: 'S' },
     { NE: 'E', SE: 'S', SW: 'O', NW: 'N', front: 'O' },
@@ -354,7 +495,7 @@ const IsometricMap: React.FC<Props> = ({
     fill: label === compassLabels.front ? '#c44' : '#666',
   });
 
-  /* ── Flows render ───────────────────────────────────────────────────── */
+  /* ── Flows ───────────────────────────────────────────────────────────── */
   function renderFlows() {
     const zoneMap = new Map(zonesEff.map(z => [z.id, z]));
     const elems: React.ReactNode[] = [];
@@ -365,33 +506,27 @@ const IsometricMap: React.FC<Props> = ({
       const to   = zoneMap.get(flow.toZoneId);
       if (!from || !to) return;
 
-      const isHedgeFrom = from.id.startsWith('haie');
-      const isHedgeTo   = to.id.startsWith('haie');
-      const hzFrom = isHedgeFrom ? 0 : (HEIGHTS[from.type] ?? 10);
-      const hzTo   = isHedgeTo   ? 0 : (HEIGHTS[to.type]   ?? 10);
+      const hzFrom = from.id.startsWith('haie') ? 0 : (VOXEL_LAYERS[from.type] ?? 1) * VOXEL_H;
+      const hzTo   = to.id.startsWith('haie')   ? 0 : (VOXEL_LAYERS[to.type]   ?? 1) * VOXEL_H;
 
       const [fx, fy_g] = isoR(from.x + from.width / 2, from.y + from.height / 2);
       const fy = fy_g - hzFrom;
       const [tx, ty_g] = isoR(to.x + to.width / 2, to.y + to.height / 2);
       const ty = ty_g - hzTo;
 
-      const color = FLOW_COLORS[flow.type] ?? '#888';
-      const markerId = `arrowIso-${flow.type}`;
-      const isSelected = flow.id === selectedFlowId;
+      const color    = FLOW_COLORS[flow.type] ?? '#888';
+      const isSel    = flow.id === selectedFlowId;
 
       elems.push(
         <g key={flow.id} style={{ cursor: 'pointer' }}
-          onClick={e => { e.stopPropagation(); setSelectedFlowId(isSelected ? null : flow.id); }}>
-          {/* Wide transparent hit area */}
+          onClick={e => { e.stopPropagation(); setSelectedFlowId(isSel ? null : flow.id); }}>
           <line x1={fx} y1={fy} x2={tx} y2={ty} stroke="transparent" strokeWidth={10}/>
-          {/* Visible line */}
-          <line
-            x1={fx} y1={fy} x2={tx} y2={ty}
+          <line x1={fx} y1={fy} x2={tx} y2={ty}
             stroke={color}
-            strokeWidth={isSelected ? 2.2 : 1.2}
-            opacity={isSelected ? 1 : 0.75}
-            strokeDasharray={isSelected ? undefined : "4 2"}
-            markerEnd={`url(#${markerId})`}
+            strokeWidth={isSel ? 2.2 : 1.2}
+            opacity={isSel ? 1 : 0.75}
+            strokeDasharray={isSel ? undefined : "4 2"}
+            markerEnd={`url(#arrowIso-${flow.type})`}
           />
         </g>
       );
@@ -405,105 +540,34 @@ const IsometricMap: React.FC<Props> = ({
     <svg viewBox={viewBox} style={{ display: 'block', width: '100%', minWidth: '520px' }}
       onClick={() => { onSelect(null); setSelectedFlowId(null); }}>
       <defs>
-        {/* Sky gradient */}
         <linearGradient id="isoSky" x1="0" y1="0" x2="0" y2="1">
           <stop offset="0%"   stopColor="#2d7fc1"/>
           <stop offset="35%"  stopColor="#6ab4df"/>
           <stop offset="70%"  stopColor="#b8ddf0"/>
           <stop offset="100%" stopColor="#d0ecd8"/>
         </linearGradient>
-        {/* Sun glow — upper-left */}
         <radialGradient id="sunGlow" cx="12%" cy="14%" r="28%" gradientUnits="objectBoundingBox">
           <stop offset="0%"   stopColor="#fff8c0" stopOpacity="0.95"/>
           <stop offset="25%"  stopColor="#ffe97a" stopOpacity="0.5"/>
           <stop offset="60%"  stopColor="#ffd040" stopOpacity="0.12"/>
           <stop offset="100%" stopColor="#87ceeb" stopOpacity="0"/>
         </radialGradient>
-        {/* Ground plane gradient */}
         <linearGradient id="isoGround" x1="0" y1="0" x2="0" y2="1">
           <stop offset="0%"   stopColor="#b8d890"/>
           <stop offset="100%" stopColor="#90b860"/>
         </linearGradient>
 
-        {/* Flow arrow markers — one per flow type */}
         {(Object.entries(FLOW_COLORS) as [string, string][]).map(([type, color]) => (
-          <marker
-            key={type}
-            id={`arrowIso-${type}`}
-            markerWidth="6" markerHeight="6"
-            refX="5" refY="3"
-            orient="auto"
-          >
+          <marker key={type} id={`arrowIso-${type}`}
+            markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto">
             <path d="M0,0 L0,6 L6,3 z" fill={color} opacity={0.85}/>
           </marker>
         ))}
-
-        {/* Habitat — briques */}
-        <pattern id="ptHabitat" x="0" y="0" width="9" height="5" patternUnits="userSpaceOnUse">
-          <line x1="0" y1="0" x2="9" y2="0" stroke="#a89070" strokeWidth="0.5" opacity="0.45"/>
-          <line x1="0" y1="2.5" x2="9" y2="2.5" stroke="#a89070" strokeWidth="0.5" opacity="0.45"/>
-          <line x1="4.5" y1="0" x2="4.5" y2="2.5" stroke="#a89070" strokeWidth="0.4" opacity="0.35"/>
-          <line x1="0" y1="2.5" x2="0" y2="5" stroke="#a89070" strokeWidth="0.4" opacity="0.35"/>
-          <line x1="9" y1="2.5" x2="9" y2="5" stroke="#a89070" strokeWidth="0.4" opacity="0.35"/>
-        </pattern>
-
-        {/* Eau — ondes */}
-        <pattern id="ptEau" x="0" y="0" width="10" height="5" patternUnits="userSpaceOnUse">
-          <path d="M0,2.5 Q2.5,1 5,2.5 Q7.5,4 10,2.5" stroke="#3a90c0" strokeWidth="0.6" fill="none" opacity="0.5"/>
-        </pattern>
-
-        {/* Maraîchage — rangées de pointillés */}
-        <pattern id="ptMaraichage" x="0" y="0" width="7" height="5" patternUnits="userSpaceOnUse">
-          <circle cx="1.5" cy="1.5" r="0.9" fill="#3aaa5a" opacity="0.45"/>
-          <circle cx="5" cy="1.5" r="0.9" fill="#3aaa5a" opacity="0.45"/>
-          <circle cx="3" cy="4" r="0.9" fill="#3aaa5a" opacity="0.45"/>
-        </pattern>
-
-        {/* Verger — couronnes d'arbres */}
-        <pattern id="ptVerger" x="0" y="0" width="12" height="9" patternUnits="userSpaceOnUse">
-          <circle cx="6" cy="4.5" r="3" fill="none" stroke="#7aaa3a" strokeWidth="0.5" opacity="0.45"/>
-          <circle cx="6" cy="4.5" r="1" fill="#7aaa3a" opacity="0.25"/>
-        </pattern>
-
-        {/* Animaux — touffes d'herbe */}
-        <pattern id="ptAnimaux" x="0" y="0" width="8" height="6" patternUnits="userSpaceOnUse">
-          <line x1="2" y1="5" x2="1.5" y2="2.5" stroke="#8a7a3a" strokeWidth="0.5" opacity="0.4"/>
-          <line x1="2" y1="5" x2="2.5" y2="2.5" stroke="#8a7a3a" strokeWidth="0.5" opacity="0.4"/>
-          <line x1="6" y1="5" x2="5.5" y2="3" stroke="#8a7a3a" strokeWidth="0.5" opacity="0.4"/>
-          <line x1="6" y1="5" x2="6.5" y2="3" stroke="#8a7a3a" strokeWidth="0.5" opacity="0.4"/>
-        </pattern>
-
-        {/* Stockage — hachures diagonales */}
-        <pattern id="ptStockage" x="0" y="0" width="6" height="6" patternUnits="userSpaceOnUse">
-          <line x1="0" y1="6" x2="6" y2="0" stroke="#888" strokeWidth="0.5" opacity="0.35"/>
-          <line x1="-3" y1="6" x2="3" y2="0" stroke="#888" strokeWidth="0.5" opacity="0.35"/>
-          <line x1="3" y1="6" x2="9" y2="0" stroke="#888" strokeWidth="0.5" opacity="0.35"/>
-        </pattern>
-
-        {/* Transformation — croisillons */}
-        <pattern id="ptTransformation" x="0" y="0" width="6" height="6" patternUnits="userSpaceOnUse">
-          <line x1="0" y1="6" x2="6" y2="0" stroke="#cc8f3a" strokeWidth="0.4" opacity="0.3"/>
-          <line x1="0" y1="0" x2="6" y2="6" stroke="#cc8f3a" strokeWidth="0.4" opacity="0.3"/>
-        </pattern>
-
-        {/* Champignons — points épars */}
-        <pattern id="ptChampignons" x="0" y="0" width="8" height="6" patternUnits="userSpaceOnUse">
-          <circle cx="2" cy="2" r="1.2" fill="#7a5a9a" opacity="0.35"/>
-          <circle cx="6" cy="4.5" r="0.8" fill="#7a5a9a" opacity="0.3"/>
-        </pattern>
-
-        {/* Mellifères — nid d'abeilles */}
-        <pattern id="ptMelliferes" x="0" y="0" width="9" height="8" patternUnits="userSpaceOnUse">
-          <polygon points="4.5,1 7.5,3 7.5,5 4.5,7 1.5,5 1.5,3"
-            fill="none" stroke="#c8a820" strokeWidth="0.5" opacity="0.4"/>
-        </pattern>
       </defs>
 
-      {/* Sky */}
+      {/* Sky + sun */}
       <rect width="830" height="420" fill="url(#isoSky)"/>
-      {/* Sun glow */}
       <rect width="830" height="420" fill="url(#sunGlow)"/>
-      {/* Sun disc */}
       <circle cx="102" cy="58" r="11" fill="#fff9a0" opacity="0.9"/>
       <circle cx="102" cy="58" r="7"  fill="#fff5c0" opacity="0.98"/>
 
@@ -514,14 +578,14 @@ const IsometricMap: React.FC<Props> = ({
         <ellipse cx="170" cy="26" rx="20" ry="9"  fill="white"/>
       </g>
       <g opacity="0.72">
-        <ellipse cx="80"  cy="52" rx="22" ry="8"  fill="white"/>
-        <ellipse cx="100" cy="47" rx="16" ry="7"  fill="white"/>
-        <ellipse cx="62"  cy="50" rx="14" ry="6"  fill="white"/>
+        <ellipse cx="80"  cy="52" rx="22" ry="8" fill="white"/>
+        <ellipse cx="100" cy="47" rx="16" ry="7" fill="white"/>
+        <ellipse cx="62"  cy="50" rx="14" ry="6" fill="white"/>
       </g>
       <g opacity="0.65">
-        <ellipse cx="710" cy="26" rx="28" ry="9"  fill="white"/>
-        <ellipse cx="735" cy="21" rx="18" ry="8"  fill="white"/>
-        <ellipse cx="688" cy="24" rx="16" ry="7"  fill="white"/>
+        <ellipse cx="710" cy="26" rx="28" ry="9" fill="white"/>
+        <ellipse cx="735" cy="21" rx="18" ry="8" fill="white"/>
+        <ellipse cx="688" cy="24" rx="16" ry="7" fill="white"/>
       </g>
 
       {/* Ground plane */}
@@ -529,75 +593,56 @@ const IsometricMap: React.FC<Props> = ({
         points={pts([isoR(10,0), isoR(MAX_X,0), isoR(MAX_X,MAX_Y), isoR(10,MAX_Y)])}
         fill="url(#isoGround)" opacity="0.28"/>
 
-      {visible.map(zone => renderZone(zone))}
+      {/* All voxels — globally painter-sorted */}
+      {allVoxels.map(renderVoxel)}
 
-      {/* Flows — rendered above zones */}
+      {/* Trees + labels above voxels */}
+      {renderZoneOverlays()}
+
+      {/* Flows */}
       {showFlows && renderFlows()}
 
-      {/* Compass — isométrique (axes alignés sur la projection) */}
-      {/* Upper-right arm = NE direction in screen space */}
-      <g transform="translate(798,38)" fontFamily="system-ui" onClick={e => e.stopPropagation()}>
-        <circle cx="0" cy="0" r="15" fill="#fff" opacity="0.82"/>
-        <line x1="-9" y1="4.5"  x2="9" y2="-4.5" stroke="#bbb" strokeWidth="0.8"/>
-        <line x1="-9" y1="-4.5" x2="9" y2="4.5"  stroke="#bbb" strokeWidth="0.8"/>
-        {/* Arrow tip toward upper-right (NE arm) */}
-        <polygon points="9,-4.5 5,-1.5 6.5,-4"
-          fill={compassLabels.NE === compassLabels.front ? '#c44' : '#aaa'}/>
-        {/* NE arm label */}
-        <text x="11" y="-4" textAnchor="start" fontSize="6"
-          style={labelStyle(compassLabels.NE)}
-          onClick={() => handleCompassClick(compassLabels.NE)}>
-          {compassLabels.NE}
-        </text>
-        {/* SE arm label */}
-        <text x="11" y="7" textAnchor="start" fontSize="6"
-          style={labelStyle(compassLabels.SE)}
-          onClick={() => handleCompassClick(compassLabels.SE)}>
-          {compassLabels.SE}
-        </text>
-        {/* NW arm label */}
-        <text x="-11" y="-4" textAnchor="end" fontSize="6"
-          style={labelStyle(compassLabels.NW)}
-          onClick={() => handleCompassClick(compassLabels.NW)}>
-          {compassLabels.NW}
-        </text>
-        {/* SW arm label */}
-        <text x="-11" y="7" textAnchor="end" fontSize="6"
-          style={labelStyle(compassLabels.SW)}
-          onClick={() => handleCompassClick(compassLabels.SW)}>
-          {compassLabels.SW}
-        </text>
-      </g>
-
-      {/* Selected flow info panel */}
+      {/* Flow info panel */}
       {showFlows && selectedFlowId && (() => {
         const flow = flows.find(f => f.id === selectedFlowId);
         if (!flow?.name) return null;
         const color = FLOW_COLORS[flow.type] ?? '#888';
-        const desc = flow.description ?? '';
-        const line1 = desc.slice(0, 44);
-        const line2 = desc.length > 44 ? desc.slice(44, 88) : '';
-        const line3 = desc.length > 88 ? desc.slice(88, 132) + (desc.length > 132 ? '…' : '') : '';
-        const PW = 262, PH = 88;
-        const px = 10, py = 300;
+        const desc  = flow.description ?? '';
+        const l1 = desc.slice(0, 44);
+        const l2 = desc.length > 44 ? desc.slice(44, 88) : '';
+        const l3 = desc.length > 88 ? desc.slice(88, 132) + (desc.length > 132 ? '…' : '') : '';
+        const px = 10, py = 300, PW = 262, PH = 88;
         return (
           <g pointerEvents="none">
             <rect x={px} y={py} width={PW} height={PH} rx={4}
               fill="#fff" stroke={color} strokeWidth={1.5} opacity={0.97}
               filter="drop-shadow(0 2px 4px rgba(0,0,0,0.2))"/>
             <rect x={px} y={py} width={PW} height={14} rx={4} fill={color} opacity={0.15}/>
-            <text x={px + 7} y={py + 10} fontSize="8.5" fontWeight="700" fill={color} fontFamily="system-ui">
+            <text x={px+7} y={py+10} fontSize="8.5" fontWeight="700" fill={color} fontFamily="system-ui">
               {flow.name}
             </text>
-            <text x={px + 7} y={py + 26} fontSize="7" fill="#555" fontFamily="system-ui">{line1}</text>
-            {line2 && <text x={px + 7} y={py + 36} fontSize="7" fill="#555" fontFamily="system-ui">{line2}</text>}
-            {line3 && <text x={px + 7} y={py + 46} fontSize="7" fill="#555" fontFamily="system-ui">{line3}</text>}
-            <text x={px + 7} y={py + 80} fontSize="6.5" fill="#aaa" fontFamily="system-ui">
+            <text x={px+7} y={py+26} fontSize="7" fill="#555" fontFamily="system-ui">{l1}</text>
+            {l2 && <text x={px+7} y={py+36} fontSize="7" fill="#555" fontFamily="system-ui">{l2}</text>}
+            {l3 && <text x={px+7} y={py+46} fontSize="7" fill="#555" fontFamily="system-ui">{l3}</text>}
+            <text x={px+7} y={py+80} fontSize="6.5" fill="#aaa" fontFamily="system-ui">
               Cliquer ailleurs pour fermer
             </text>
           </g>
         );
       })()}
+
+      {/* Compass */}
+      <g transform="translate(798,38)" fontFamily="system-ui" onClick={e => e.stopPropagation()}>
+        <circle cx="0" cy="0" r="15" fill="#fff" opacity="0.82"/>
+        <line x1="-9" y1="4.5"  x2="9" y2="-4.5" stroke="#bbb" strokeWidth="0.8"/>
+        <line x1="-9" y1="-4.5" x2="9" y2="4.5"  stroke="#bbb" strokeWidth="0.8"/>
+        <polygon points="9,-4.5 5,-1.5 6.5,-4"
+          fill={compassLabels.NE === compassLabels.front ? '#c44' : '#aaa'}/>
+        <text x="11" y="-4"  textAnchor="start" fontSize="6" style={labelStyle(compassLabels.NE)} onClick={() => handleCompassClick(compassLabels.NE)}>{compassLabels.NE}</text>
+        <text x="11" y="7"   textAnchor="start" fontSize="6" style={labelStyle(compassLabels.SE)} onClick={() => handleCompassClick(compassLabels.SE)}>{compassLabels.SE}</text>
+        <text x="-11" y="-4" textAnchor="end"   fontSize="6" style={labelStyle(compassLabels.NW)} onClick={() => handleCompassClick(compassLabels.NW)}>{compassLabels.NW}</text>
+        <text x="-11" y="7"  textAnchor="end"   fontSize="6" style={labelStyle(compassLabels.SW)} onClick={() => handleCompassClick(compassLabels.SW)}>{compassLabels.SW}</text>
+      </g>
 
       {/* Legend */}
       <rect x="8" y="398" width="814" height="18" rx="4" fill="#fff" opacity="0.82"/>
